@@ -130,15 +130,19 @@ public:
               SP_material   material,
               SP_MtoD       MtoD)
     :  d_state(state)
+    ,  d_material(material)
     ,  d_mesh(mesh)
     ,  d_quadrature(quadrature)
     ,  d_MtoD(MtoD)
     ,  d_source(mesh->number_cells(), 0.0)
     ,  d_fixed_group_source(mesh->number_cells(), 0.0)
     ,  d_scatter_group_source(mesh->number_cells(), 0.0)
+    ,  d_group_scalar_flux(mesh->number_cells(), 0.0)
     ,  d_scattersource(new ScatterSource(mesh, material, state))
+    ,  b_dgm(false)
   {
     Require(d_state);
+    Require(d_material);
     Require(d_mesh);
     Require(d_quadrature);
     Require(d_MtoD);
@@ -164,6 +168,11 @@ public:
   {
     Require(source);
     d_discrete_external_sources.push_back(source);
+  }
+
+  void set_dgm()
+  {
+    b_dgm = true;
   }
 
   /*!
@@ -225,6 +234,7 @@ public:
 private:
 
   SP_state d_state;
+  SP_material d_material;
   SP_mesh d_mesh;
   SP_quadrature d_quadrature;
   SP_MtoD d_MtoD;
@@ -238,6 +248,8 @@ private:
   /// Within group scattering applicable to all angles in this group.
   moments_type d_scatter_group_source;
 
+  moments_type d_group_scalar_flux;
+
   /// A container of external moments sources.
   std::vector<SP_externalsource> d_moment_external_sources;
 
@@ -249,6 +261,10 @@ private:
 
   /// Scattering source
   SP_scattersource d_scattersource;
+
+  /// Delta source
+
+  bool b_dgm;
 
 };
 

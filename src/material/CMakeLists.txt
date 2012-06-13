@@ -10,6 +10,7 @@ SET(MATERIAL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 SET(MATERIAL_SRC
     Material.cc
+    MaterialDGM.cc
 )
 
 #-------------------------------------#

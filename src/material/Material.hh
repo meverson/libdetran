@@ -45,6 +45,8 @@ public:
            int  number_materials,
            bool downscatter = false);
 
+  virtual ~Material(){}
+
   /*!
    *  \brief SP Constructor.
    *
@@ -81,6 +83,8 @@ public:
   void set_sigma_s(int m, int g, int gp, double v);
 
   void set_diff_coef(int m, int g, double v);
+
+  void set_delta(int m, int g, int a, double v);
 
   // Vectorized setters
 
@@ -120,14 +124,16 @@ public:
 
   inline double diff_coef(int m, int g) const;
 
+  inline double delta(int m, int g, int a) const;
+
   int number_groups()
   {
-    return d_number_groups;
+    return b_number_groups;
   }
 
   int number_materials()
   {
-    return d_number_materials;
+    return b_number_materials;
   }
 
   /*!
@@ -147,15 +153,29 @@ public:
   int upper(int g);
 
   /// Do we do only downscatter?
-  bool downscatter()
+  bool downscatter() const
   {
-    return d_downscatter;
+    return b_downscatter;
   }
 
   /// Index below which upscatter doesn't occur for any material.
-  int upscatter_cutoff()
+  int upscatter_cutoff() const
   {
-    return d_upscatter_cutoff;
+    return b_upscatter_cutoff;
+  }
+
+  void set_dgm(int number_angles)
+  {
+    b_number_angles = number_angles;
+    d_delta.resize(b_number_materials,
+                   vec2_dbl(b_number_groups,
+                            vec_dbl(b_number_angles, 0.0)));
+    b_dgm = true;
+  }
+
+  bool has_dgm() const
+  {
+    return b_dgm;
   }
 
   /// Computes scattering bounds and absorption cross section.
@@ -167,57 +187,66 @@ public:
   /// Incomplete implementation of DBC function.
   bool is_valid() const
   {
-    Ensure(d_number_groups >= 0);
-    Ensure(d_finalized);
+    Ensure(b_number_groups >= 0);
+    Ensure(b_finalized);
     return true;
   };
 
-private:
+protected:
 
   /// Number of groups
-  int d_number_groups;
+  int b_number_groups;
 
   /// Number of materials
-  int d_number_materials;
+  int b_number_materials;
 
   /// Downscatter switch (when true, upscatter ignored)
-  bool d_downscatter;
+  bool b_downscatter;
 
   /// Total cross section [material, group]
-  vec2_dbl d_sigma_t;
+  vec2_dbl b_sigma_t;
 
   /// Absorption cross section [material, group]
-  vec2_dbl d_sigma_a;
+  vec2_dbl b_sigma_a;
 
   /// nu * Fission [material, group]
-  vec2_dbl d_nu_sigma_f;
+  vec2_dbl b_nu_sigma_f;
 
   /// Fission [material, group]
-  vec2_dbl d_sigma_f;
+  vec2_dbl b_sigma_f;
 
   /// nu [material, group]
-  vec2_dbl d_nu;
+  vec2_dbl b_nu;
 
   /// Fission spectrum [material, group]
-  vec2_dbl d_chi;
+  vec2_dbl b_chi;
 
   /// Scatter [material, group<-, group']
-  vec3_dbl d_sigma_s;
+  vec3_dbl b_sigma_s;
 
   /// Diffusion coefficient [material, group]
-  vec2_dbl d_diff_coef;
+  vec2_dbl b_diff_coef;
 
   /// Scatter bounds applied to all materials [group, 2]
-  vec2_int d_scatter_bounds;
+  vec2_int b_scatter_bounds;
 
   /*!
    *  Upscatter cutoff.  Only groups equal to or above this cutoff are
    *  subject to upscatter iterations.
    */
-  int d_upscatter_cutoff;
+  int b_upscatter_cutoff;
 
   /// Are we ready to be used?
-  bool d_finalized;
+  bool b_finalized;
+
+  /// DGM
+
+  bool b_dgm;
+
+  int b_number_angles;
+
+  // Delta [material, group, angle]
+  vec3_dbl d_delta;
 
 };
 

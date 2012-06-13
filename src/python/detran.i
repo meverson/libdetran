@@ -46,6 +46,7 @@ namespace
   
 // Material
 #include "Material.hh"
+#include "MaterialDGM.hh"
   
 //---------------------------------------------------------------------------//
 // LEVEL 2 

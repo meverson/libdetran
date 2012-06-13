@@ -68,6 +68,9 @@ namespace detran
     for (int cell = 0; cell < d_mesh->number_cells(); cell++)
       d_scatter_group_source[cell] = 0.0;
 
+    // Save flux
+    d_group_scalar_flux = phi;
+
     // Build within-group scattering
     d_scattersource->build_within_group_source(g, phi, d_scatter_group_source);
 
@@ -144,6 +147,21 @@ namespace detran
       {
         s[cell] +=
             d_discrete_external_sources[i]->source(cell, g);
+      }
+    }
+
+    // If dgm, add the delta contribution.
+    if (d_material->has_dgm())
+    {
+//      std::cout << " has dgm... " << std::endl;
+      vec_int mm = d_mesh->mesh_map("MATERIAL");
+      State::moments_type phi = d_state->phi(g);
+      for (int cell = 0; cell < d_mesh->number_cells(); cell++)
+      {
+        s[cell] -= d_group_scalar_flux[cell] *
+          d_material->delta(mm[cell], g, d_quadrature->index(o, a));
+//        std::cout << " delta = " << d_material->delta(mm[cell], g, d_quadrature->index(o, a))
+//                  << " phi = " << d_group_scalar_flux[cell] << std::endl;
       }
     }
 

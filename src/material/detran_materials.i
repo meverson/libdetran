@@ -9,8 +9,10 @@
 %include "detran_utilities.i"
 
 %include "Material.hh"
+%include "MaterialDGM.hh"
 
-%template(MaterialSP) detran::SP<detran::Material>;
+%template(MaterialSP)    detran::SP<detran::Material>;
+%template(MaterialDGMSP) detran::SP<detran::MaterialDGM>;
 
 //---------------------------------------------------------------------------//
 //              end of detran_material.i
