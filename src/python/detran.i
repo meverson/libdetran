@@ -57,6 +57,7 @@ namespace
 #include "Boundary.hh"
 #include "FissionSource.hh"
 #include "ExternalSource.hh"
+#include "DiscreteSource.hh"
 #include "ConstantSource.hh"
 #include "State.hh"
 #include "SweepSource.hh"
