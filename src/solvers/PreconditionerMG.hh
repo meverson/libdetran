@@ -150,6 +150,7 @@ private:
   /// Upscatter cutoff (groups below and including don't get upscatter)
   u_int d_upscatter_cutoff;
 
+
   /// Tolerance for the preconditioner solve
   double d_tolerance;
 

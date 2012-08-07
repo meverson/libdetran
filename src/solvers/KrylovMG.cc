@@ -157,6 +157,7 @@ KrylovMG<D>::KrylovMG(SP_input          input,
       ierr = KSPSetPCSide(d_solver, PC_RIGHT);
     else
       ierr = KSPSetPCSide(d_solver, PC_LEFT);
+
   }
 
   // Set tolerances.
