@@ -38,10 +38,10 @@ Execute::Execute(StupidParser &parser)
   if (d_input->check("problem_type"))
     d_problem_type = d_input->get<std::string>("problem_type");
   // Number of groups
-  int d_number_groups = d_input->get<int>("number_groups");
+  d_number_groups = d_input->get<int>("number_groups");
 
   // Postconditions
-  Ensure(d_dimension > 0 and d_dimension < 4);
+  Ensure(d_dimension > 0 && d_dimension < 4);
 }
 
 template<class D>

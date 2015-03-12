@@ -1,16 +1,15 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   MGSolver.hh
- *  @author robertsj
- *  @date   Jun 19, 2012
- *  @brief  MGSolver class definition.
+ *  @file  MGSolver.hh
+ *  @brief MGSolver class definition
+ *  @note  Copyright(C) 2012-2013 Jeremy Roberts
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef detran_MGSOLVER_HH_
 #define detran_MGSOLVER_HH_
 
-#include "Solver.hh"
+#include "solvers/Solver.hh"
 #include "external_source/ExternalSource.hh"
 #include "geometry/Mesh.hh"
 #include "material/Material.hh"
@@ -32,9 +31,9 @@ class MGSolver: public Solver<D>
 
 public:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // TYPEDEFS
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   typedef detran_utilities::SP<MGSolver<D> >        SP_solver;
   typedef Solver<D>                                 Base;
@@ -46,10 +45,11 @@ public:
   typedef typename Base::SP_externalsource          SP_externalsource;
   typedef typename Base::vec_externalsource         vec_externalsource;
   typedef typename Base::SP_fissionsource           SP_fissionsource;
+  typedef typename Base::size_t                     size_t;
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // CONSTRUCTOR & DESTRUCTOR
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  @brief Constructor
@@ -70,18 +70,28 @@ public:
   /// Virtual destructor
   virtual ~MGSolver(){};
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // ABSTRACT INTERFACE -- ALL MULTIGROUP SOLVERS MUST IMPLEMENT
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /// Solve the multigroup equations.
   virtual void solve(const double keff = 1.0) = 0;
 
+  //--------------------------------------------------------------------------//
+  // PUBLIC FUNCTIONS
+  //--------------------------------------------------------------------------//
+
+  /// Return number of sweeps
+  virtual int number_sweeps() const
+  {
+    return 0;
+  }
+
 protected:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // DATA
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /// Expose base members
   using Base::d_input;
@@ -106,11 +116,5 @@ protected:
 };
 
 } // namespace detran
-
-//---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-//#include "MGSolver.i.hh"
 
 #endif /* detran_MGSOLVER_HH_ */

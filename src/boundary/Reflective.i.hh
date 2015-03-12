@@ -19,13 +19,13 @@ namespace detran
 template <class D>
 void Reflective<D>::update(const size_t g)
 {
-  for (int o = 0; o < d_quadrature->number_octants()/2; o++)
+  for (size_t o = 0; o < d_quadrature->number_octants()/2; ++o)
   {
-    for (int a = 0; a < d_quadrature->number_angles_octant(); a++)
+    for (size_t a = 0; a < d_quadrature->number_angles_octant(); ++a)
     {
       // Reroute reflecting fluxes.
-      d_boundary(d_side, d_octants[o][Boundary_T::IN], a, g) =
-        d_boundary(d_side, d_octants[o][Boundary_T::OUT], a, g);
+      (*d_boundary)(d_side, d_octants[o][Boundary_T::IN], a, g) =
+        (*d_boundary)(d_side, d_octants[o][Boundary_T::OUT], a, g);
     }
   }
 }
@@ -36,7 +36,7 @@ template <class D>
 void Reflective<D>::update(const size_t g, const size_t o, const size_t a)
 {
   int o_out = -1;
-  for (int i = 0; i < d_octants.size(); i++)
+  for (size_t i = 0; i < d_octants.size(); ++i)
   {
     if (d_octants[i][Boundary_T::IN] == o)
     {
@@ -47,8 +47,8 @@ void Reflective<D>::update(const size_t g, const size_t o, const size_t a)
   if (o_out >= 0)
   {
     // Reroute reflecting fluxes.
-    d_boundary(d_side, o, a, g) =
-      d_boundary(d_side, o_out, a, g);
+    (*d_boundary)(d_side, o, a, g) =
+      (*d_boundary)(d_side, o_out, a, g);
   }
 }
 
@@ -75,8 +75,8 @@ void Reflective<D>::update(const size_t g, const size_t o, const size_t a)
 // face, I'm looking along +z, my left is -x
 
 //---------------------------------------------------------------------------//
-template <class D>
-void Reflective<D>::setup_octant()
+template <>
+inline void Reflective<_3D>::setup_octant()
 {
   if (d_side == Mesh::WEST)
   {
@@ -160,7 +160,7 @@ void Reflective<D>::setup_octant()
 
 //---------------------------------------------------------------------------//
 template <>
-void Reflective<_2D>::setup_octant()
+inline void Reflective<_2D>::setup_octant()
 {
   Require(d_side == Mesh::WEST  || d_side == Mesh::EAST  ||
           d_side == Mesh::SOUTH || d_side == Mesh::NORTH );
@@ -196,7 +196,7 @@ void Reflective<_2D>::setup_octant()
 
 //---------------------------------------------------------------------------//
 template <>
-void Reflective<_1D>::setup_octant()
+inline void Reflective<_1D>::setup_octant()
 {
   Require(d_side == Mesh::WEST || d_side == Mesh::EAST);
   if (d_side == Mesh::WEST)
@@ -214,6 +214,10 @@ void Reflective<_1D>::setup_octant()
     d_octants[0][1] = 0;
   }
 }
+    
+BOUNDARY_INSTANTIATE_EXPORT(Reflective<_1D>)
+BOUNDARY_INSTANTIATE_EXPORT(Reflective<_2D>)
+BOUNDARY_INSTANTIATE_EXPORT(Reflective<_3D>)
 
 } // end namespace detran
 

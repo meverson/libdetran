@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   IsotropicSource.hh
- *  @author robertsj
- *  @date   Apr 4, 2012
- *  @brief  IsotropicSource class definition.
+ *  @file  IsotropicSource.hh
+ *  @brief IsotropicSource class definition
+ *  @note  Copyright (C) Jeremy Roberts 2012-2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef detran_external_source_ISOTROPICSOURCE_HH_
 #define detran_external_source_ISOTROPICSOURCE_HH_
@@ -15,28 +14,28 @@
 namespace detran_external_source
 {
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 /**
  *  @class IsotropicSource
  *  @brief Isotropic volume source.
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
-class IsotropicSource : public ExternalSource
+class EXTERNAL_SOURCE_EXPORT IsotropicSource : public ExternalSource
 {
 
 public:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // TYPEDEFS
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   typedef detran_utilities::vec2_dbl             spectra_type;
   typedef detran_utilities::vec_int              vec_int;
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // CONSTRUCTOR & DESTRUCTOR
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  @brief Constructor
@@ -55,8 +54,8 @@ public:
 
   /// SP constructor
   static SP_externalsource
-  Create(size_t number_groups,
-         SP_mesh mesh,
+  Create(detran_utilities::size_t          number_groups,
+         detran_geometry::Mesh::SP_mesh    mesh,
          std::vector<std::vector<double> > &spectra,
          std::vector<int>                  &map,
          SP_quadrature quadrature = SP_quadrature(0))
@@ -66,14 +65,9 @@ public:
     return p;
   }
 
-//  // SP constructor
-//  SPCREATE(IsotropicSource, SP_externalsource,
-//           (size_t a, SP_mesh b, spectra_type& c, vec_int& d, SP_quadrature e),
-//           (a, b, c, d, e = SP_quadrature(0)) );
-
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // ABSTRACT INTERFACE -- ALL EXTERNAL SOURCES MUST IMPLEMENT THESE
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   double source(const size_t cell, const size_t group)
   {
@@ -88,7 +82,6 @@ public:
                 const size_t group,
                 const size_t angle)
   {
-    // Preconditions
     Require(cell < d_mesh->number_cells());
     Require(group < d_number_groups);
     Require(angle < d_number_angles); // note, #angle = -1 if no quad set
@@ -98,9 +91,9 @@ public:
 
 private:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // DATA
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /// Source spectra
   spectra_type d_source_spectra;
@@ -115,6 +108,6 @@ private:
 
 #endif /* detran_external_source_ISOTROPICSOURCE_HH_ */
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of IsotropicSource.hh
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

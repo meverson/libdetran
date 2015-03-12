@@ -32,18 +32,18 @@ Collocated::Collocated(size_t dim,
   bool db = false;
 
   Insist(   (d_number_azimuths_octant == 3)
-         or (d_number_azimuths_octant == 5)
-         or (d_number_azimuths_octant == 7)
-         or (d_number_azimuths_octant == 9),
+         || (d_number_azimuths_octant == 5)
+         || (d_number_azimuths_octant == 7)
+         || (d_number_azimuths_octant == 9),
          "Collocated quadrature implemented for 3, 5, 7, or 9 azimuths.");
 
   Insist(multiplier > 0, "The multiplier must be positive");
 
-  int num_space = std::pow(3.0, double(d_number_azimuths_octant / 2));
+  int num_space = std::pow((float)3, (int)(d_number_azimuths_octant / 2));
   Ensure(   num_space ==  3
-         or num_space ==  9
-         or num_space == 27
-         or num_space == 81);
+         || num_space ==  9
+         || num_space == 27
+         || num_space == 81);
   // num_space is the maximum number of tracks from any side
 
   if (db)
@@ -57,11 +57,11 @@ Collocated::Collocated(size_t dim,
   vec_dbl phi(d_number_azimuths_octant, 0.0);
   vec_int num_tracks(d_number_azimuths_octant, 0);
 
-  for (int i = 0; i < d_number_azimuths_octant / 2; i++)
+  for (size_t i = 0; i < d_number_azimuths_octant / 2; i++)
   {
-    int a = d_number_azimuths_octant - i - 1;
-    num_y[a] = std::pow(3, i); // 3^(i-1);
-    num_x[i] = std::pow(3, i);
+    size_t a = d_number_azimuths_octant - i - 1;
+    num_y[a] = std::pow((float)3, (int)i); // 3^(i-1);
+    num_x[i] = std::pow((float)3, (int)i);
   }
 
   //-------------------------------------------------------------------------//
@@ -97,7 +97,7 @@ Collocated::Collocated(size_t dim,
     start = 0;
   }
 
-  for (int a = 0; a < d_number_azimuths_octant; a++)
+  for (size_t a = 0; a < d_number_azimuths_octant; a++)
   {
     d_phi[a] = points[start + a];
     d_phi[2*d_number_azimuths_octant - a - 1] = detran_utilities::pi - d_phi[a];
@@ -111,7 +111,7 @@ Collocated::Collocated(size_t dim,
 
   if (weight_flag) // Use the interpolating weights
   {
-    int a = 0;
+    size_t a = 0;
     if (d_number_azimuths_octant == 3)
     {
       double w[] = {0.751228992310453, 0.068338342173990};
@@ -149,7 +149,7 @@ Collocated::Collocated(size_t dim,
   }
   else // Arc length weight
   {
-    int a = 0;
+    size_t a = 0;
     if (d_number_azimuths_octant == 3)
     {
       double w[] = {0.553574358897045, 0.463647609000806};
@@ -181,12 +181,12 @@ Collocated::Collocated(size_t dim,
       d_azimuth_weight[a] = w[a];
     }
   }
-  for (int a = 0; a < d_number_azimuths_octant/2; a++)
+  for (size_t a = 0; a < d_number_azimuths_octant/2; a++)
   {
-    int ra = d_number_azimuths_octant - a - 1;
+    size_t ra = d_number_azimuths_octant - a - 1;
     d_azimuth_weight[ra] =  d_azimuth_weight[a];
   }
-  for (int a = 0; a < d_number_azimuths_octant; a++)
+  for (size_t a = 0; a < d_number_azimuths_octant; a++)
   {
     d_azimuth_weight[2*d_number_azimuths_octant - a - 1] = d_azimuth_weight[a];
   }
@@ -195,10 +195,10 @@ Collocated::Collocated(size_t dim,
   // FINALIZE QUADRATURE
   //-------------------------------------------------------------------------/
 
-  for (int a = 0; a < d_number_azimuths_octant; a++)
+  for (size_t a = 0; a < d_number_azimuths_octant; a++)
   {
 
-    for (int p = 0; p < d_number_polar; p++)
+    for (size_t p = 0; p < d_number_polar; p++)
     {
       // Cardinal Index
       int angle = a * d_number_polar + p;
@@ -212,7 +212,7 @@ Collocated::Collocated(size_t dim,
 
   if (db)
   {
-    for (int a = 0; a < 2*d_number_azimuths_octant; a++)
+    for (size_t a = 0; a < 2*d_number_azimuths_octant; a++)
     {
       int aa = a;
       if (a >= d_number_azimuths_octant)
@@ -236,11 +236,11 @@ Collocated::Collocated(size_t dim,
   // Calculate intercepts on a square.
   d_enter.resize(2*d_number_azimuths_octant);
   d_exit.resize(2*d_number_azimuths_octant);
-  d_number_enter.resize(2*d_number_azimuths_octant, vec_int(2, 0));
-  d_number_exit.resize(2*d_number_azimuths_octant, vec_int(2, 0));
+  d_number_enter.resize(2*d_number_azimuths_octant, vec_size_t(2, 0));
+  d_number_exit.resize(2*d_number_azimuths_octant, vec_size_t(2, 0));
 
   // First quadrant
-  for (int a = 0; a < d_number_azimuths_octant; a++)
+  for (size_t a = 0; a < d_number_azimuths_octant; a++)
   {
     // Number of tracks
     int nx = num_x[a];
@@ -279,7 +279,7 @@ Collocated::Collocated(size_t dim,
     d_number_exit[a][1]  = num_x[a];
   }
   // Second quadrant, placed as mirror image.
-  for (int a = 0; a < d_number_azimuths_octant;  a++)
+  for (size_t a = 0; a < d_number_azimuths_octant;  a++)
   {
     int a2 = a + d_number_azimuths_octant;
 
@@ -317,7 +317,6 @@ Collocated::Collocated(size_t dim,
     d_number_exit[a2][1]  = num_x[a];
     d_azimuth_weight[a2]  = d_azimuth_weight[a];
   }
-
 
 }
 

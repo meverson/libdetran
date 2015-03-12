@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   WGSolver.cc
- *  @author robertsj
- *  @date   Apr 4, 2012
- *  @brief  WGSolver class member definitions
+ *  @file  WGSolver.cc
+ *  @brief WGSolver member definitions
+ *  @note  Copyright(C) 2012-2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -52,7 +51,7 @@ WGSolver<D>::WGSolver(SP_state                  state,
 
   SP_MtoD MtoD;
   // \todo Currently limited to 1 moment (0th order)
-  MtoD = new detran_angle::MomentToDiscrete(0);
+  MtoD = new detran_angle::MomentToDiscrete(d_state->get_momentindexer());
   MtoD->build(d_quadrature);
 
   //-------------------------------------------------------------------------//
@@ -65,10 +64,10 @@ WGSolver<D>::WGSolver(SP_state                  state,
                        MtoD, d_multiply);
 
   if (q_f) d_sweepsource->set_fission_source(q_f);
-  Assert(!multiply or (multiply and q_f));
+  Assert(!multiply || (multiply && q_f));
 
   // Add any moment and discrete sources present.
-  for (int i = 0; i < q_e.size(); ++i)
+  for (size_t i = 0; i < q_e.size(); ++i)
   {
     if (q_e[i])
     {

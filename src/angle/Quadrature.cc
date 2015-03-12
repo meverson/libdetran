@@ -1,16 +1,13 @@
-//----------------------------------*-C++-*----------------------------------//
-/*!
- * \file   Quadrature.cc
- * \author Jeremy Roberts
- * \date   Mar 23, 2012
- * \brief  Quadrature class member definitions
+//----------------------------------*-C++-*-----------------------------------//
+/**
+ *  @file   Quadrature.cc
+ *  @author Jeremy Roberts
+ *  @date   Mar 23, 2012
+ *  @brief  Quadrature class member definitions
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
-// Detran
-#include "Quadrature.hh"
-
-// System 
+#include "angle/Quadrature.hh"
 #include <iostream>
 #include <cstdio>
 #include <cmath>
@@ -18,13 +15,13 @@
 namespace detran_angle
 {
 
-// Constructor
-Quadrature::Quadrature(const size_t dim,
-                       const size_t number_angles,
+//----------------------------------------------------------------------------//
+Quadrature::Quadrature(const size_t      dim,
+                       const size_t      number_angles,
                        const std::string name)
   : d_dimension(dim)
   , d_number_angles(number_angles)
-  , d_number_octants(std::pow(2.0, dim))
+  , d_number_octants(std::pow((float)2, (int)dim))
   , d_number_angles_octant(number_angles/d_number_octants)
   , d_weight(d_number_angles_octant, 0.0)
   , d_mu(d_number_angles_octant, 0.0)
@@ -37,7 +34,7 @@ Quadrature::Quadrature(const size_t dim,
   , d_adjoint(false)
 {
   // Preconditions
-  Insist((dim > 0) and (dim < 4),
+  Insist((dim > 0) && (dim < 4),
     "The quadrature dimension MUST be 1, 2, or 3.");
 
   // Define the signs for all eight octants.
@@ -84,10 +81,14 @@ Quadrature::Quadrature(const size_t dim,
   }
   else if (d_dimension == 2)
   {
-    int inc[4][2] = {{0, 3}, {2, 1},
-                     {1, 0}, {3, 2}};
-    int out[4][2] = {{2, 1}, {0, 3},
-                     {3, 2}, {1, 0}};
+    int inc[4][2] = {{3, 0}, {1, 2},
+                     {0, 1}, {2, 3}};
+    int out[4][2] = {{1, 2}, {3, 0},
+                     {2, 3}, {0, 1}};
+//    int inc[4][2] = {{0, 3}, {2, 1},
+//                     {1, 0}, {3, 2}};
+//    int out[4][2] = {{2, 1}, {0, 3},
+//                     {3, 2}, {1, 0}};
     for (int s = 0; s < 4; ++s)
     {
       for (int o = 0; o < 2; ++o)
@@ -99,12 +100,14 @@ Quadrature::Quadrature(const size_t dim,
   }
   else if (d_dimension == 3)
   {
-    int inc[6][4] = {{4,7,0,3}, {5,6,2,1},
-                     {1,5,0,4}, {6,2,7,3},
-                     {3,2,0,1}, {6,7,5,4}};
-    int out[6][4] = {{5,6,2,1}, {4,7,0,3},
-                     {6,2,7,3}, {1,5,0,4},
-                     {6,7,5,4}, {3,2,0,1}};
+    // vertical surface: r->l, b->t
+    // horizontal      : counter clockwise
+    int inc[6][4] = {{7,4,3,0}, {5,6,1,2},
+                     {4,5,0,1}, {6,7,2,3},
+                     {0,1,2,3}, {4,5,6,7}};
+    int out[6][4] = {{5,6,1,2}, {7,4,3,0},
+                     {6,7,2,3}, {4,5,0,1},
+                     {4,5,6,7}, {0,1,2,3}};
     for (int s = 0; s < 6; ++s)
     {
       for (int o = 0; o < 4; ++o)
@@ -117,13 +120,13 @@ Quadrature::Quadrature(const size_t dim,
 
 }
 
-// Pure virtual still needs definition.
+//----------------------------------------------------------------------------//
 Quadrature::~Quadrature()
 {
   /* ... */
 }
 
-// Set adjoint
+//----------------------------------------------------------------------------//
 void Quadrature::set_adjoint(const bool v)
 {
 
@@ -140,11 +143,7 @@ void Quadrature::set_adjoint(const bool v)
 
 }
 
-std::string Quadrature::name() const
-{
-  return d_name;
-}
-
+//----------------------------------------------------------------------------//
 const Quadrature::vec_int&
 Quadrature::incident_octant(const size_t s)
 {
@@ -152,6 +151,7 @@ Quadrature::incident_octant(const size_t s)
   return d_incident_octants[s];
 }
 
+//----------------------------------------------------------------------------//
 const Quadrature::vec_int&
 Quadrature::outgoing_octant(const size_t s)
 {
@@ -159,48 +159,46 @@ Quadrature::outgoing_octant(const size_t s)
   return d_outgoing_octants[s];
 }
 
-// Display
+//----------------------------------------------------------------------------//
 void Quadrature::display() const
 {
 
-    using std::cout;
-    using std::endl;
-    using std::printf;
+  using std::cout;
+  using std::endl;
+  using std::printf;
 
-    cout << endl;
-    cout << d_name << " abscissa and weights: " << endl << endl;
+  cout << endl;
+  cout << d_name << " abscissa and weights: " << endl << endl;
 
-    double weight_sum = 0;
+  double weight_sum = 0;
 
-    if (d_dimension == 1)
+  if (d_dimension == 1)
+  {
+    cout << "   m            mu                  wt       " << endl;
+    cout << "  ---   ------------------  -----------------" << endl;
+    for (size_t ix = 0; ix < d_number_angles_octant; ++ix)
     {
-      cout << "   m            mu                  wt       " << endl;
-      cout << "  ---   ------------------  -----------------" << endl;
-      for ( int ix = 0; ix < d_number_angles_octant; ++ix )
-      {
-          printf ("%4i    %16.13f   %16.13f   \n", ix, d_mu[ix], d_weight[ix] );
-          weight_sum += d_weight[ix];
-      }
+      printf ("%4i    %16.13f   %16.13f   \n", ix, d_mu[ix], d_weight[ix] );
+      weight_sum += d_weight[ix];
     }
-    else
+  }
+  else
+  {
+    cout << "   m            mu                 eta                xi                 wt       " << endl;
+    cout << "  ---   -----------------  -----------------  -----------------  -----------------" << endl;
+    for (size_t ix = 0; ix < d_number_angles_octant; ++ix)
     {
-      cout << "   m            mu                 eta                xi                 wt       " << endl;
-      cout << "  ---   -----------------  -----------------  -----------------  -----------------" << endl;
-      for ( int ix = 0; ix < d_number_angles_octant; ++ix )
-      {
-          printf ("%4i    %16.13f   %16.13f   %16.13f   %16.13f   \n",
-                  ix, d_mu[ix], d_eta[ix], d_xi[ix], d_weight[ix] );
-          weight_sum += d_weight[ix];
-      }
+      printf ("%4i    %16.13f   %16.13f   %16.13f   %16.13f   \n",
+              ix, d_mu[ix], d_eta[ix], d_xi[ix], d_weight[ix] );
+      weight_sum += d_weight[ix];
     }
+  }
 
-    cout << endl << "  The sum of the weights is " << weight_sum << endl;
-    cout << endl;
-
+  cout << endl << "  The sum of the weights is " << weight_sum << endl << endl;
 }
 
 } // end namespace detran_angle
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of Quadrature.cc
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

@@ -1,27 +1,30 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
  *  @file   BoundaryBase.hh
- *  @brief  BoundaryBase
- *  @author Jeremy Roberts
- *  @date   Jun 25, 2012
+ *  @brief  BoundaryBase class definition
+ *  @author Copyright (C) 2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
 #ifndef detran_BOUNDARYBASE_HH_
 #define detran_BOUNDARYBASE_HH_
 
+#include "boundary/boundary_export.hh"
 #include "transport/DimensionTraits.hh"
 #include "geometry/Mesh.hh"
 #include "utilities/DBC.hh"
+#include "utilities/Definitions.hh"
 #include "utilities/InputDB.hh"
 
 namespace detran
 {
 
+//---------------------------------------------------------------------------//
 /**
  *  @class BoundaryBase
  *  @brief Base class for boundary flux containers.
  */
+//---------------------------------------------------------------------------//
 
 template <class D>
 class BoundaryBase
@@ -56,6 +59,7 @@ public:
   typedef detran_geometry::Mesh                     Mesh;
   typedef detran_geometry::Mesh::SP_mesh            SP_mesh;
   typedef detran_utilities::size_t                  size_t;
+  typedef D                                         D_T;
 
   //-------------------------------------------------------------------------//
   // CONSTRUCTORS & DESTRUCTORS
@@ -138,6 +142,7 @@ public:
    */
   virtual void clear(const size_t g) = 0;
 
+
   /**
    *  @brief Set the entire group boundary flux for reflecting sides.
    *
@@ -146,20 +151,28 @@ public:
    *  @param g  Group of current sweep
    *  @param v  Pointer to data used in Krylov solve
    */
-  virtual void psi(const size_t g,
-                   double *v,
-                   const int inout,
-                   const int gs,
-                   bool onlyref = true) = 0;
+  virtual void psi(const      size_t g,
+                   double    *v,
+                   const int  inout,
+                   const int  gs,
+                   bool       onlyref = true) = 0;
 
   //-------------------------------------------------------------------------//
-  // PUBLIC INTERFACE
+  // PUBLIC FUNCTIONS
   //-------------------------------------------------------------------------//
 
   /// Clear all groups.
   void clear()
   {
     for (size_t g = 0; g < d_number_groups; ++g) clear(g);
+  }
+
+  /**
+   *  @brief Clear any fixed boundary conditions.
+   */
+  virtual void clear_bc()
+  {
+    /* ... */
   }
 
   /// Does the boundary have any reflective conditions?
@@ -188,6 +201,12 @@ public:
     return d_boundary_flux_size[side];
   }
 
+  /// Display boundray information and contents
+  virtual void display(bool inout) const
+  {
+    /* ... */
+  }
+
 protected:
 
   //-------------------------------------------------------------------------//
@@ -201,7 +220,7 @@ protected:
   /// Do I have any reflective conditions?  (Krylov support)
   bool d_has_reflective;
   /// Vector of is it reflective? (Krylov support)
-  std::vector<bool> d_is_reflective;
+  detran_utilities::vec_bool d_is_reflective;
   /// Do I have any vacuum conditions? (Krylov support)
   bool d_has_vacuum;
   /// Size of the boundary flux on a side in one group.

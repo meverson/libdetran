@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   EigenPI.i.hh
- *  @author robertsj
- *  @date   Apr 10, 2012
- *  @brief  EigenPI inline member definitions.
+ *  @file  EigenPI.i.hh
+ *  @brief EigenPI inline member definitions
+ *  @note  Copyright(C) 2012-2013 Jeremy Roberts
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef detran_EIGENPI_I_HH_
 #define detran_EIGENPI_I_HH_
@@ -79,7 +78,7 @@ void EigenPI<D>::solve()
 
     // Compute error in fission density.
     error = norm_residual(fd, fd_old, "L1");
-    if (d_print_level > 1 and iteration % d_print_interval == 0)
+    if (d_print_level > 1 && iteration % d_print_interval == 0)
     {
       if (d_aitken)
       {
@@ -102,7 +101,7 @@ void EigenPI<D>::solve()
   if (d_print_level > 0)
   {
     printf("*********************************************************************\n");
-    printf(" PI Final: Number Iters: %3i  Error: %12.9f keff: %12.9f \n",
+    printf(" PI Final: Number Iters: %3i  Error: %12.9e keff: %12.9f \n",
            iteration, error, keff);
     printf("*********************************************************************\n");
   }
@@ -119,3 +118,8 @@ void EigenPI<D>::solve()
 } // end namespace detran
 
 #endif /* detran_EIGENPI_I_HH_ */
+
+//----------------------------------------------------------------------------//
+//              end of file EigenPI.i.hh
+//----------------------------------------------------------------------------//
+

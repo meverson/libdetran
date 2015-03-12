@@ -17,7 +17,7 @@ namespace detran
 
 // Forward declare boundary and traits.
 template <class D> class BoundarySN;
-template <class D> class BoundaryTraits;
+template <class D> struct BoundaryTraits;
 
 //---------------------------------------------------------------------------//
 /**
@@ -46,13 +46,13 @@ public:
   typedef typename std::vector<boundary_flux_type>  vec_boundary_flux;
   typedef typename std::vector<vec_boundary_flux>   vec2_boundary_flux;
   typedef typename std::vector<vec2_boundary_flux>  vec3_boundary_flux;
-  typedef typename Boundary_T::size_t               size_t;
+  typedef detran_utilities::size_t                  size_t;
 
   //-------------------------------------------------------------------------//
   // CONSTRUCTOR & DESTRUCTOR
   //-------------------------------------------------------------------------//
 
-  BoundaryCondition(Boundary_T& boundary,
+  BoundaryCondition(SP_boundary boundary,
                     const size_t side,
                     SP_input input,
                     SP_mesh mesh,
@@ -84,14 +84,24 @@ public:
   /// Update a boundary for a given angle following a sweep.
   virtual void update(const size_t g, const size_t o, const size_t a) = 0;
 
+  //-------------------------------------------------------------------------//
+  // PUBLIC FUNCTIONS
+  //-------------------------------------------------------------------------//
+
+  /// Clear any static data
+  virtual void clear()
+  {
+    /* ... */
+  }
+
 protected:
 
   //-------------------------------------------------------------------------//
   // DATA
   //-------------------------------------------------------------------------//
 
-  /// Boundary flux container. \todo Is there a way around using a reference?
-  Boundary_T& d_boundary;
+  /// Boundary flux container.
+  SP_boundary d_boundary;
   /// My surface.
   const size_t d_side;
   /// Input
@@ -105,4 +115,4 @@ protected:
 
 } // end namespace detran
 
-#endif /* detranBOUNDARYCONDITION_HH_ */
+#endif /* detran_BOUNDARYCONDITION_HH_ */

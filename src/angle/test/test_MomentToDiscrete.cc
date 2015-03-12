@@ -15,9 +15,7 @@
 // Detran headers
 #include "TestDriver.hh"
 #include "MomentToDiscrete.hh"
-
-// Setup
-#include "quadrature_fixture.hh"
+#include "QuadratureFactory.hh"
 
 using namespace detran_angle;
 using namespace detran_utilities;
@@ -35,12 +33,17 @@ int main(int argc, char *argv[])
 
 int test_MomentToDiscrete(int argc, char *argv[])
 {
+  QuadratureFactory qf;
+  Quadrature::SP_quadrature q;
+  InputDB::SP_input db = InputDB::Create();
   // 1d test
   {
+    // Indexer
+    MomentIndexer::SP_momentindexer indexer = MomentIndexer::Create(1, 0);
     // MtoD
-    MomentToDiscrete MtoD(0);
+    MomentToDiscrete MtoD(indexer);
     // Quadrature
-    SP_quadrature q = GaussLegendre::Create(2);
+    q = qf.build(db, 1);
     TEST(q);
     // Build
     MtoD.build(q);
@@ -49,10 +52,12 @@ int test_MomentToDiscrete(int argc, char *argv[])
   }
   // 2d test
   {
+    // Indexer
+    MomentIndexer::SP_momentindexer indexer = MomentIndexer::Create(2, 0);
     // MtoD
-    MomentToDiscrete MtoD(0);
+    MomentToDiscrete MtoD(indexer);
     // Quadrature
-    SP_quadrature q = QuadrupleRange::Create(2);
+    q = qf.build(db, 2);
     TEST(q);
     // Build
     MtoD.build(q);

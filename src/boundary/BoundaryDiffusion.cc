@@ -19,7 +19,6 @@ BoundaryDiffusion<D>::BoundaryDiffusion(SP_input        input,
   : Base(input, mesh)
   , d_boundary_flux(2, vec2_boundary_flux(2*D::dimension))
 {
-  // Size the boundaries
   initialize();
 }
 
@@ -41,7 +40,7 @@ BoundaryDiffusion<D>::Create(SP_input         input,
 template <class D>
 void BoundaryDiffusion<D>::initialize()
 {
-  THROW("NOT IMPLEMENTED");
+  D::not_implemented();
 }
 
 //---------------------------------------------------------------------------/
@@ -119,10 +118,12 @@ void BoundaryDiffusion<_1D>::initialize()
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template class BoundaryDiffusion<_1D>;
-template class BoundaryDiffusion<_2D>;
-template class BoundaryDiffusion<_3D>;
-
+BOUNDARY_INSTANTIATE_EXPORT(BoundaryDiffusion<_1D>)
+BOUNDARY_INSTANTIATE_EXPORT(BoundaryDiffusion<_2D>)
+BOUNDARY_INSTANTIATE_EXPORT(BoundaryDiffusion<_3D>)
+BOUNDARY_TEMPLATE_EXPORT(detran_utilities::SP<BoundaryDiffusion<_1D> >)
+BOUNDARY_TEMPLATE_EXPORT(detran_utilities::SP<BoundaryDiffusion<_2D> >)
+BOUNDARY_TEMPLATE_EXPORT(detran_utilities::SP<BoundaryDiffusion<_3D> >)
 
 } // end namespace detran
 

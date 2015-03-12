@@ -1,24 +1,19 @@
-//----------------------------------*-C++-*----------------------------------//
-/*!
- * \file   test_ConstantSource.cc
- * \author Jeremy Roberts
- * \date   Jun 22, 2012
- * \brief  Test of ConstantSource
+//----------------------------------*-C++-*-----------------------------------//
+/**
+ *  @file  test_ConstantSource.cc
+ *  @brief Test of ConstantSource
+ *  @note  Copyright (C) Jeremy Roberts 2012-2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 // LIST OF TEST FUNCTIONS
-#define TEST_LIST                     \
+#define TEST_LIST                  \
         FUNC(test_ConstantSource)
 
-// Detran headers
 #include "TestDriver.hh"
 #include "ConstantSource.hh"
 #include "Mesh2D.hh"
-#include "QuadrupleRange.hh"
-
-// Setup
-/* ... */
+#include "QuadratureFactory.hh"
 
 using namespace detran_external_source;
 using namespace detran_geometry;
@@ -32,9 +27,9 @@ int main(int argc, char *argv[])
   RUN(argc, argv);
 }
 
-//----------------------------------------------//
+//----------------------------------------------------------------------------//
 // TEST DEFINITIONS
-//----------------------------------------------//
+//----------------------------------------------------------------------------//
 
 int test_ConstantSource(int argc, char *argv[])
 {
@@ -45,11 +40,13 @@ int test_ConstantSource(int argc, char *argv[])
   vec_int fm(1, 2);
   vec_int mt(1, 0);
   Mesh::SP_mesh mesh(new Mesh2D(fm, fm, cm, cm, mt));
+  TEST(mesh);
 
   // Create quadrature.
-  Quadrature::SP_quadrature quad(new QuadrupleRange(2, 2));
-
-  TEST(mesh);
+  Quadrature::SP_quadrature quad;
+  QuadratureFactory qf;
+  InputDB::SP_input db = InputDB::Create();
+  quad = qf.build(db, 2);
   TEST(quad);
 
   ConstantSource q_e(1, mesh, 1.0, quad);
@@ -60,6 +57,6 @@ int test_ConstantSource(int argc, char *argv[])
   return 0;
 }
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of test_ConstantSource.cc
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

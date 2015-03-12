@@ -9,8 +9,8 @@
 #ifndef detran_material_MATERIAL_HH_
 #define detran_material_MATERIAL_HH_
 
+#include "material/material_export.hh"
 #include "utilities/Definitions.hh"
-#include "utilities/DBC.hh"
 #include "utilities/SP.hh"
 #include <string>
 #ifdef DETRAN_ENABLE_BOOST
@@ -33,7 +33,7 @@ namespace detran_material
  *  appears to be the best storage scheme with respect to memory access.
  */
 //---------------------------------------------------------------------------//
-class Material
+class MATERIAL_EXPORT Material
 {
 
 public:
@@ -48,6 +48,8 @@ public:
   typedef detran_utilities::vec3_dbl     vec3_dbl;
   typedef detran_utilities::vec_int      vec_int;
   typedef detran_utilities::vec2_int     vec2_int;
+  typedef detran_utilities::vec_size_t   vec_size_t;
+  typedef detran_utilities::vec2_size_t  vec2_size_t;
   typedef detran_utilities::size_t       size_t;
 
   //-------------------------------------------------------------------------//
@@ -79,9 +81,10 @@ public:
   /**
    *  @brief Explicitly turn on downscatter-only
    */
-  void set_downscatter(bool v)
+  void set_downscatter(bool v, bool tran = false)
   {
-    d_downscatter = v;
+    if (tran) d_downscatter[1] = v;
+    d_downscatter[0] = v;
     if (d_finalized) finalize();
   }
 
@@ -148,28 +151,32 @@ public:
    *
    *  This is the *lowest* index (highest energy) \f$ g' \f$
    *  that leads to downscatter for a given outgoing group \f$ g \f$.
+   *
+   *  @param g        Row of the scattering matrix
+   *  @param tran     Flag for accessing transpose of S
    */
-  size_t lower(size_t g) const;
+  size_t lower(size_t g, bool tran = false) const;
 
   /**
    *  @brief Upper scatter group bound.
    *
    *  This is the *highest* index (lowest energy) \f$ g' \f$
    *  that upscatters size_to the outgoing group \f$ g \f$.
+   *
+   *  @param g        Row of the scattering matrix
+   *  @param tran     Flag for accessing transpose of S
    */
-  size_t upper(size_t g) const;
+  size_t upper(size_t g, bool tran = false) const;
 
   /// Do we do only downscatter?
-  bool downscatter()
-  {
-    return d_downscatter;
-  }
+  bool downscatter(bool tran = false) const;
 
-  /// Index below which upscatter doesn't occur for any material.
-  size_t upscatter_cutoff()
-  {
-    return d_upscatter_cutoff;
-  }
+  /**
+   *  @brief Index below which upscatter doesn't occur for any material.
+   *
+   *  For adjoint problems, this is the group above which
+   */
+  size_t upscatter_cutoff(bool tran = false) const;
 
   /**
    *  @brief Compute the absorption cross section from total and scattering.
@@ -208,7 +215,7 @@ protected:
   /// Number of materials
   size_t d_number_materials;
   /// Downscatter switch (when true, upscatter ignored)
-  bool d_downscatter;
+  bool d_downscatter[2];
   /// Total cross section [material, group]
   vec2_dbl d_sigma_t;
   /// Absorption cross section [material, group]
@@ -226,9 +233,9 @@ protected:
   /// Diffusion coefficient [material, group]
   vec2_dbl d_diff_coef;
   /// Scatter bounds applied to all materials [group, 2]
-  vec2_int d_scatter_bounds;
+  vec2_size_t d_scatter_bounds;
   /// Groups equal to or above cutoff are subject to upscatter iterations
-  size_t d_upscatter_cutoff;
+  size_t d_upscatter_cutoff[2];
   /// Are we ready to be used?
   bool d_finalized;
 
@@ -252,6 +259,7 @@ protected:
     ar & d_number_materials;
     ar & d_downscatter;
     ar & d_sigma_t;
+    ar & d_sigma_a;
     ar & d_nu_sigma_f;
     ar & d_sigma_f;
     ar & d_nu;
@@ -266,6 +274,8 @@ protected:
 #endif
 
 };
+
+MATERIAL_TEMPLATE_EXPORT(detran_utilities::SP<Material>)
 
 } // end namespace detran_material
 

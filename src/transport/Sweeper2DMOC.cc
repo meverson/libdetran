@@ -7,8 +7,8 @@
  */
 //---------------------------------------------------------------------------//
 
-#include "Sweeper2DMOC.hh"
-#include "Equation_SC_MOC.hh"
+#include "transport/Sweeper2DMOC.hh"
+#include "transport/Equation_SC_MOC.hh"
 
 namespace detran
 {
@@ -25,7 +25,7 @@ Sweeper2DMOC<EQ>::Sweeper2DMOC(SP_input input,
   : Base(input, mesh, material, quadrature, state, boundary, sweepsource)
   , d_boundary(boundary)
 {
-    d_tracks = mesh->tracks();
+    //d_tracks = mesh->tracks();
 }
 
 //---------------------------------------------------------------------------//
@@ -48,6 +48,7 @@ Sweeper2DMOC<EQ>::Create(SP_input       input,
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template class Sweeper2DMOC<Equation_SC_MOC>;
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper2DMOC<Equation_SC_MOC>)
+TRANSPORT_TEMPLATE_EXPORT(detran_utilities::SP<Sweeper2DMOC<Equation_SC_MOC> >)
 
 } // end namespace detran

@@ -1,15 +1,15 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   MomentIndexer.hh
- *  @author robertsj
- *  @date   Dec 13, 2012
- *  @brief  MomentIndexer class definition.
+ *  @file  MomentIndexer.hh
+ *  @brief MomentIndexer class definition
+ *  @note  Copyright (C) Jeremy Roberts 2012-2013
  */
 //---------------------------------------------------------------------------//
 
 #ifndef detran_angle_MOMENTINDEXER_HH_
 #define detran_angle_MOMENTINDEXER_HH_
 
+#include "angle/angle_export.hh"
 #include "utilities/Definitions.hh"
 #include "utilities/DBC.hh"
 #include "utilities/SP.hh"
@@ -52,7 +52,7 @@ namespace detran_angle
  *  from 0 to the given order.  Hence, there are \f$L+1\f$ moments.
  */
 
-class MomentIndexer
+class ANGLE_EXPORT MomentIndexer
 {
 
 public:
@@ -61,7 +61,7 @@ public:
   // TYPEDEFS
   //-------------------------------------------------------------------------//
 
-  typedef typename detran_utilities::SP<MomentIndexer>     SP_momentindexer;
+  typedef detran_utilities::SP<MomentIndexer>              SP_momentindexer;
   typedef detran_utilities::vec_int                        vec_int;
   typedef detran_utilities::vec2_int                       vec2_int;
   typedef detran_utilities::size_t                         size_t;
@@ -155,6 +155,8 @@ private:
   void construct_3D();
 
 };
+
+ANGLE_TEMPLATE_EXPORT(detran_utilities::SP<MomentIndexer>)
 
 } // end namespace detran_angle
 

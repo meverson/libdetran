@@ -10,6 +10,7 @@
 #ifndef detran_ioutils_IO_HDF5_HH_
 #define detran_ioutils_IO_HDF5_HH_
 
+#include "ioutils/ioutils_export.hh"
 #include "detran_config.hh"
 #include "material/Material.hh"
 #include "geometry/Mesh.hh"
@@ -42,10 +43,21 @@ namespace detran_ioutils
  *  entries will go in that group.  Later, it might be useful
  *  to add ones for the mesh and material specification.
  */
-class IO_HDF5
+class IOUTILS_EXPORT IO_HDF5
 {
 
 public:
+
+  //-------------------------------------------------------------------------//
+  // ENUMERATIONS
+  //-------------------------------------------------------------------------//
+
+	enum HDF5_FILE_ACCESS
+	{
+		HDF5_READ_ONLY,
+		HDF5_OVERWRITE,
+		END_HDF5_FILE_ACCESS
+	};
 
   //-------------------------------------------------------------------------//
   // TYPEDEFS
@@ -68,12 +80,15 @@ public:
    */
   IO_HDF5(std::string filename);
 
+  /// Destructor
+  ~IO_HDF5();
+
   //-------------------------------------------------------------------------//
   // PUBLIC FUNCTIONS
   //-------------------------------------------------------------------------//
 
-  /// Open HDF5 file for writing.  This replaces old content.
-  void open();
+  /// Open HDF5 file for writing.  This *replaces old content*.
+  void open(const int flag = HDF5_READ_ONLY);
 
   /**
    *  @brief Write the input database into an HDF5 file.
@@ -131,12 +146,23 @@ private:
   //-------------------------------------------------------------------------//
 
   /**
+   *  @brief Write a nested input database into an HDF5 file.
+   *  @param input    Database to be written
+   *  @param name 		Name of the nested db (as found in the root db)
+   *  @param root 		Root group into which the new db is entered
+   */
+  void write(SP_input db, std::string name, hid_t root);
+
+  /**
    *  @brief Fill a temporary compound type container and write to file
    *  @param input  User input database
    *  @param data   Pointer to compound type array
    */
   template <class T>
   bool read_data(SP_input input, hid_t group, std::string name);
+
+  /// Read a nested database
+  SP_input read_input(hid_t root, const char* name);
 
   /// Set the data type for storage in memory
   template <class T>
@@ -185,6 +211,8 @@ private:
 #endif
 
 };
+
+IOUTILS_TEMPLATE_EXPORT(detran_utilities::SP<IO_HDF5>)
 
 } // end namespace detran_ioutils
 

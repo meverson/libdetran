@@ -11,6 +11,7 @@
 #ifndef detran_BOUNDARYTRAITS_HH_
 #define detran_BOUNDARYTRAITS_HH_
 
+#include "boundary/boundary_export.hh"
 #include "utilities/DBC.hh"
 #include "utilities/Definitions.hh"
 
@@ -35,19 +36,19 @@ struct BoundaryTraits
 };
 
 template <>
-struct BoundaryTraits<_3D>
+struct BOUNDARY_EXPORT BoundaryTraits<_3D>
 {
   typedef detran_utilities::vec2_dbl value_type;
 };
 
 template <>
-struct BoundaryTraits<_2D>
+struct BOUNDARY_EXPORT BoundaryTraits<_2D>
 {
   typedef detran_utilities::vec_dbl value_type;
 };
 
 template <>
-struct BoundaryTraits<_1D>
+struct BOUNDARY_EXPORT BoundaryTraits<_1D>
 {
   typedef double value_type;
 };
@@ -70,23 +71,42 @@ struct BoundaryValue
 };
 
 template <>
-struct BoundaryValue<_3D>
+struct BOUNDARY_EXPORT BoundaryValue<_3D>
 {
+  // Const access to boundary value
+  static inline const double&
+  value(const BoundaryTraits<_3D>::value_type &b,
+        const size_t                           i,
+        const size_t                           j)
+  {
+    Require(j < b.size());
+    Require(i < b[0].size());
+    return b[j][i];
+  }
   // Mutable access to boundary value
   static inline double&
   value(BoundaryTraits<_3D>::value_type &b,
         const size_t                     i,
         const size_t                     j)
   {
-    Require(i < b.size());
-    Require(j < b[0].size());
-    return b[i][j];
+    Require(j < b.size());
+    Require(i < b[0].size());
+    return b[j][i];
   }
 };
 
 template <>
-struct BoundaryValue<_2D>
+struct BOUNDARY_EXPORT BoundaryValue<_2D>
 {
+  // Const access to boundary value
+  static inline const double&
+  value(const BoundaryTraits<_2D>::value_type &b,
+        const size_t                           i,
+        const size_t                           j = 0)
+  {
+    Require(i < b.size());
+    return b[i];
+  }
   // Mutable access to boundary value
   static inline double&
   value(BoundaryTraits<_2D>::value_type &b,
@@ -99,8 +119,16 @@ struct BoundaryValue<_2D>
 };
 
 template <>
-struct BoundaryValue<_1D>
+struct BOUNDARY_EXPORT BoundaryValue<_1D>
 {
+  // Const access to boundary value
+  static inline const double&
+  value(const BoundaryTraits<_1D>::value_type &b,
+        const size_t                           i = 0,
+        const size_t                           j = 0)
+  {
+    return b;
+  }
   // Mutable access to boundary value
   static inline double&
   value(BoundaryTraits<_1D>::value_type &b,

@@ -10,6 +10,7 @@
 #ifndef REACTIONRATES_HH_
 #define REACTIONRATES_HH_
 
+#include "postprocess/postprocess_export.hh"
 #include "geometry/Mesh.hh"
 #include "material/Material.hh"
 #include "transport/FissionSource.hh"
@@ -32,7 +33,7 @@ namespace detran_postprocess
  *  assemblies, and so on.
  *
  */
-class ReactionRates
+class POSTPROCESS_EXPORT ReactionRates
 {
 
 public:
@@ -90,7 +91,7 @@ public:
    *  as used in \ref Mesh.
    *
    *  @param key    String identifier for the edit region
-   *  @param scale  Total power used for normalization
+   *  @param scale  Total power for normalization.  Negative for no scaling.
    */
   vec_dbl region_power(std::string key, double scale = 1.0);
 

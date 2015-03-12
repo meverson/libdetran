@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
-/*!
- *  \file   PinCell.cc
- *  \author Jeremy Roberts
- *  \brief  PinCell class member definitions
- *  \date   Mar 23, 2012
+//----------------------------------*-C++-*-----------------------------------//
+/**
+ *  @file  PinCell.hh
+ *  @brief PinCell class member definitions
+ *  @note  Copyright (C) 2013 Jeremy Roberts  
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #include "PinCell.hh"
 #include "utilities/SoftEquivalence.hh"
@@ -16,29 +15,61 @@
 namespace detran_geometry
 {
 
-// Constructor
-PinCell::PinCell(double pitch, vec_dbl radii, vec_int mat_map, bool fuel_flag)
+//----------------------------------------------------------------------------//
+PinCell::PinCell(const Point      &pitch,
+                 const vec_int    &mat_map,
+                 const vec_dbl    &radii,
+                 const size_t      division,
+                 const Point      &pincenter)
   : d_pitch(pitch)
-  , d_radii(radii)
   , d_mat_map(mat_map)
-  , d_fuel_flag(fuel_flag)
+  , d_division(division)
+  , d_radii(radii)
+  , d_pin_center(pincenter)
 {
-  Require(d_pitch > 0.0);
-  Require(d_mat_map.size() == 1 + d_radii.size());
+  Insist(d_pitch.x() > 0.0, "Pitch must be positive");
+  Insist(d_mat_map.size() == d_radii.size() + 1,
+         "Material id vector size != to # of pin + moderator regions");
+  Insist(d_division < END_DIVISION_SCHEMES, "Invalid division scheme");
+  if (d_radii.size())
+  {
+    Insist(d_radii[0] > 0.0, "Radii must be positive");
+  }
+  std::cout << " # radii = " << radii.size() << std::endl;
+  for (size_t i = 1; i < d_radii.size(); ++i)
+  {
+    Insist(d_radii[i] > d_radii[i-1], "Radii must be monotonic increasing:"
+           + AsString(d_radii[i-1]) + " followed by " + AsString(d_radii[i]));
+  }
+  if (d_pitch.y() <= 0.0)
+  {
+    d_pitch = Point(d_pitch.x(), d_pitch.x());
+  }
 }
 
-// Mesh the object
+//----------------------------------------------------------------------------//
+PinCell::SP_pincell PinCell::Create(const Point      &pitch,
+                                    const vec_int    &mat_map,
+                                    const vec_dbl    &radii,
+                                    const size_t      division,
+                                    const Point      &pincenter)
+{
+  SP_pincell p(new PinCell(pitch, mat_map, radii, division, pincenter));
+  return p;
+}
+
+//----------------------------------------------------------------------------//
 void PinCell::meshify(int number_meshes, bool flag)
 {
   Require(number_meshes > 0);
-  if (flag and d_radii.size() != 1)
+  if (flag && d_radii.size() != 1)
   {
     // Best fit mesh only for single radius.
     detran_utilities::warning(detran_utilities::USER_INPUT,
       "Best fit pincell only for a single radius.");
     flag = false;
   }
-  if (flag and number_meshes < 7)
+  if (flag && number_meshes < 7)
   {
     // Best fit mesh only for single radius.
     detran_utilities::warning(detran_utilities::USER_INPUT,
@@ -51,7 +82,7 @@ void PinCell::meshify(int number_meshes, bool flag)
   {
 
     // Fine mesh width.
-    double width = d_pitch / number_meshes;
+    double width = d_pitch.x() / number_meshes;
 
     // Fine mesh edges.  Assumes constant spacing.
     vec_dbl edges(number_meshes + 1, 0.0);
@@ -95,7 +126,7 @@ void PinCell::meshify(int number_meshes, bool flag)
     double L = 1.60496875 * d_radii[0];
     double delta = 0.176223981031790 * d_radii[0];
     // Dimensions
-    double half_pitch = 0.5*d_pitch;
+    double half_pitch = 0.5*d_pitch.x();
     double width_mod = half_pitch-0.5*L-delta;
 
     // Number of fine meshes in moderator, delta, and square
@@ -175,7 +206,7 @@ void PinCell::meshify(int number_meshes, bool flag)
     coarse[5] = coarse[4] + 0.25*L;
     coarse[6] = coarse[5] + delta;
     coarse[7] = coarse[6] + width_mod;
-    Ensure(detran_utilities::soft_equiv(coarse[7], d_pitch));
+    Ensure(detran_utilities::soft_equiv(coarse[7], d_pitch.x()));
 
     // Set the material.  Default is zero, which
     // is fuel.  We need to set the 13 fuel cells.
@@ -194,14 +225,15 @@ void PinCell::meshify(int number_meshes, bool flag)
 
 }
 
+//----------------------------------------------------------------------------//
 int PinCell::find_region(int i, int j, double width)
 {
   double x = (i + 0.5) * width;
   double y = (j + 0.5) * width;
   // Loop through the radii. If I'm in there, that's where I live.
   int r = d_radii.size(); // start off in outer region.
-  double hp = 0.5 * d_pitch;
-  for (int p = 0; p < d_radii.size(); p++)
+  double hp = 0.5 * d_pitch.x();
+  for (size_t p = 0; p < d_radii.size(); p++)
   {
     if (std::sqrt((x - hp) * (x - hp) + (y - hp) * (y - hp)) < d_radii[p])
     {
@@ -214,5 +246,7 @@ int PinCell::find_region(int i, int j, double width)
 
 } // end namespace detran_geometry
 
-
+//----------------------------------------------------------------------------//
+//              end of PinCell.cc
+//----------------------------------------------------------------------------//
 

@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
-/*!
- * \file   test_CurrentTally.cc
- * \author Jeremy Roberts
- * @date   Apr 1, 2012
- * \brief  Test of CurrentTally
+//----------------------------------*-C++-*-----------------------------------//
+/**
+ *  @file  test_CurrentTally.cc
+ *  @brief Test of CurrentTally class
+ *  @note  Copyright (C) 2012-2013 Jeremy Roberts
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 // LIST OF TEST FUNCTIONS
 #define TEST_LIST                     \
@@ -15,11 +14,9 @@
 
 #include "utilities/TestDriver.hh"
 #include "CurrentTally.hh"
-#include "angle/GaussLegendre.hh"
+#include "angle/PolarQuadrature.hh"
 #include "angle/LevelSymmetric.hh"
 #include "utilities/Definitions.hh"
-
-// Setup
 #include "coarsemesh_fixture.hh"
 
 using namespace detran;
@@ -33,9 +30,9 @@ int main(int argc, char *argv[])
   RUN(argc, argv);
 }
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 // TEST DEFINITIONS
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 int test_CurrentTally_1D(int argc, char *argv[])
 {
@@ -74,11 +71,13 @@ int test_CurrentTally_1D(int argc, char *argv[])
    */
 
   // Reference partial currents
-  double Jright[] = {2.73843733182052E+00, 2.73843733182052E+00, 2.73843733182052E+00,
-                     6.84609332955131E-01, 1.71152333238783E-01, 4.27880833096957E-02,
+  double Jright[] = {2.73843733182052E+00, 2.73843733182052E+00,
+                     2.73843733182052E+00, 6.84609332955131E-01,
+                     1.71152333238783E-01, 4.27880833096957E-02,
                      1.06970208274239E-02, 2.67425520685598E-03};
-  double Jleft[]  = {5.35792775340790E-02, 5.35792775340790E-02, 5.35792775340790E-02,
-                     2.14317110136316E-01, 8.57268440545264E-01, 3.42907376218105E+00,
+  double Jleft[]  = {5.35792775340790E-02, 5.35792775340790E-02,
+                     5.35792775340790E-02, 2.14317110136316E-01,
+                     8.57268440545264E-01, 3.42907376218105E+00,
                      1.37162950487242E+01, 5.48651801948969E+01};
 
   // Get the coarse mesh
@@ -91,8 +90,8 @@ int test_CurrentTally_1D(int argc, char *argv[])
   TEST(finemesh->number_cells() == 15);
 
   // Create an S4 quadrature.
-  CurrentTally_T::SP_quadrature quad(new GaussLegendre(4));
-
+  CurrentTally_T::SP_quadrature quad(new PolarGL(2));
+  quad->display();
   // Create the tally.
   CurrentTally_T::SP_currenttally tally(new CurrentTally_T(mesh, quad, 1));
 
@@ -108,9 +107,9 @@ int test_CurrentTally_1D(int argc, char *argv[])
     // Loop through azimuths in an octant.
     for (size_t a = 0; a < 2; a++)
     {
-
+      size_t aa = a == 0 ? 1 : 0;
       // Start with a fixed psi at the boundary.
-      psi_out = 100.0 * (double) o + 10.0 * (double) a + 1.0;
+      psi_out = 100.0 * (double) o + 10.0 * (double) aa + 1.0;
 
       // TALLY THE INCIDENT BOUNDARY
       size_t io = 0;
@@ -136,6 +135,7 @@ int test_CurrentTally_1D(int argc, char *argv[])
   // Test
   for (int i = 0; i < 8; i++)
   {
+    printf("%20.12f %20.12f \n", Jright[i], tally->partial_current(i, 0, 0, 0, 0, true));
     TEST(soft_equiv(Jright[i], tally->partial_current(i, 0, 0, 0, 0, true)));
     TEST(soft_equiv(Jleft[i],  tally->partial_current(i, 0, 0, 0, 0, false)));
   }
@@ -173,7 +173,7 @@ int test_CurrentTally_2D(int argc, char *argv[])
   CurrentTally_T::SP_coarsemesh mesh = coarsemesh_2d();
   TEST(mesh);
 
-  int ceflag[] = {0, -1, 1, -1, 2};
+  //int ceflag[] = {0, -1, 1, -1, 2};
 
   // Get the fine mesh.
   CoarseMesh::SP_mesh finemesh = mesh->get_fine_mesh();
@@ -186,13 +186,13 @@ int test_CurrentTally_2D(int argc, char *argv[])
   TEST(coarsemesh->number_cells() == 7*7);
 
   // Create an S2 quadrature.
-  CurrentTally_T::SP_quadrature quad(new LevelSymmetric(2, 2));
+  CurrentTally_T::SP_quadrature quad(new LevelSymmetric(1, 2));
 
   // Create the tally.
   CurrentTally_T::SP_currenttally tally(new CurrentTally_T(mesh, quad, 1));
 
   // Create the face flux.
-  CurrentTally_T::face_flux_type psi_in, psi_out;
+  CurrentTally_T::face_flux_type psi_out;
 
   // Now, fake a sweep.
 
@@ -210,7 +210,7 @@ int test_CurrentTally_2D(int argc, char *argv[])
       {
         // Pick left or right side
         size_t i = 0;
-        if (o == 1 or o == 2) i = finemesh->number_cells_x() - 1;
+        if (o == 1 || o == 2) i = finemesh->number_cells_x() - 1;
         // Loop over vertical
         for (size_t jj = 0; jj < finemesh->number_cells_y(); jj++)
         {
@@ -227,7 +227,7 @@ int test_CurrentTally_2D(int argc, char *argv[])
         for (size_t ii = 0; ii < finemesh->number_cells_x(); ii++)
         {
           size_t i = ii;
-          if (o == 1 or o == 2) i = finemesh->number_cells_x() - i - 1;
+          if (o == 1 || o == 2) i = finemesh->number_cells_x() - i - 1;
           tally->tally(i, j, 0, 0, o, a, 1, 1.0);
         }
       }
@@ -242,7 +242,7 @@ int test_CurrentTally_2D(int argc, char *argv[])
         for (size_t ii = 0; ii < finemesh->number_cells_x(); ii++)
         {
           size_t i = ii;
-          if (o == 1 or o == 2) i = finemesh->number_cells_x() - i - 1;
+          if (o == 1 || o == 2) i = finemesh->number_cells_x() - i - 1;
 
           // TALLY THE OUTGOING CELL FLUX
           tally->tally(i, j, 0, 0, o, a, psi_out);
@@ -327,13 +327,13 @@ int test_CurrentTally_3D(int argc, char *argv[])
   TEST(coarsemesh->number_cells() == 7*7*7);
 
   // Create an S2 quadrature.
-  CurrentTally_T::SP_quadrature quad(new LevelSymmetric(2, 3));
+  CurrentTally_T::SP_quadrature quad(new LevelSymmetric(1, 3));
 
   // Create the tally.
   CurrentTally_T::SP_currenttally tally(new CurrentTally_T(mesh, quad, 1));
 
   // Create the face flux.
-  CurrentTally_T::face_flux_type psi_in, psi_out;
+  CurrentTally_T::face_flux_type psi_out;
 
   // Now, fake a sweep.
 
@@ -352,13 +352,13 @@ int test_CurrentTally_3D(int argc, char *argv[])
       {
         // Pick left or right side
         size_t i = 0;
-        if (o == 1 or o == 2 or o == 5 or o == 6)
+        if (o == 1 || o == 2 || o == 5 || o == 6)
           i = finemesh->number_cells_x() - 1;
         // Loop over vertical
         for (size_t jj = 0; jj < finemesh->number_cells_y(); jj++)
         {
           size_t j = jj;
-          if (o == 2 or o == 3 or o == 6 or o == 7)
+          if (o == 2 || o == 3 || o == 6 || o == 7)
             j = finemesh->number_cells_y() - j - 1;
           for (size_t kk = 0; kk < finemesh->number_cells_z(); kk++)
           {
@@ -373,13 +373,13 @@ int test_CurrentTally_3D(int argc, char *argv[])
       {
         // Pick left or right side
         size_t j = 0;
-        if (o == 2 or o == 3 or o == 6 or o == 7)
+        if (o == 2 || o == 3 || o == 6 || o == 7)
           j = finemesh->number_cells_y() - 1;
         // Loop over vertical
         for (size_t ii = 0; ii < finemesh->number_cells_x(); ii++)
         {
           size_t i = ii;
-          if (o == 1 or o == 2 or o == 5 or o == 6)
+          if (o == 1 || o == 2 || o == 5 || o == 6)
             i = finemesh->number_cells_x() - i - 1;
           for (size_t kk = 0; kk < finemesh->number_cells_z(); kk++)
           {
@@ -400,12 +400,12 @@ int test_CurrentTally_3D(int argc, char *argv[])
         for (size_t ii = 0; ii < finemesh->number_cells_x(); ii++)
         {
           size_t i = ii;
-          if (o == 1 or o == 2 or o == 5 or o == 6)
+          if (o == 1 || o == 2 || o == 5 || o == 6)
             i = finemesh->number_cells_x() - i - 1;
           for (size_t jj = 0; jj < finemesh->number_cells_y(); jj++)
           {
             size_t j = jj;
-            if (o == 2 or o == 3 or o == 6 or o == 7)
+            if (o == 2 || o == 3 || o == 6 || o == 7)
               j = finemesh->number_cells_y() - j - 1;
             tally->tally(i, j, k, 0, o, a, CurrentTally_T::Z_DIRECTED, 1.0);
           }
@@ -422,14 +422,14 @@ int test_CurrentTally_3D(int argc, char *argv[])
         for (size_t jj = 0; jj < finemesh->number_cells_y(); jj++)
         {
           size_t j = jj;
-          if (o == 2 or o == 3 or o == 6 or o == 7)
+          if (o == 2 || o == 3 || o == 6 || o == 7)
             j = finemesh->number_cells_y() - j - 1;
 
           // Loop over x.
           for (size_t ii = 0; ii < finemesh->number_cells_x(); ii++)
           {
             size_t i = ii;
-            if (o == 1 or o == 2 or o == 5 or o == 6)
+            if (o == 1 || o == 2 || o == 5 || o == 6)
               i = finemesh->number_cells_x() - i - 1;
 
             // TALLY THE OUTGOING CELL FLUX
@@ -503,6 +503,6 @@ int test_CurrentTally_3D(int argc, char *argv[])
   return 0;
 }
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of test_CurrentTally.cc
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

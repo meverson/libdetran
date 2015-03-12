@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   WGSolverGMRES.i.hh
- *  @author robertsj
- *  @date   Apr 4, 2012
- *  @brief  WGSolverGMRES inline member definitions.
+ *  @file  WGSolverGMRES.i.hh
+ *  @brief WGSolverGMRES inline member definitions.
+ *  @note  Copyright(C) 2012-2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -26,7 +25,7 @@ inline void WGSolverGMRES<D>::solve(const size_t g)
   using std::endl;
 
   if (d_print_level > 0) std::cout << "    Starting GMRES." << std::endl;
-  if (d_print_level > 0) std::cout << "      group " << g << std::endl;
+  if (d_print_level > 0) std::cout << "      group " << (int)g << std::endl;
 
   // Set the group for this solve.
   d_g = g;
@@ -67,9 +66,11 @@ inline void WGSolverGMRES<D>::solve(const size_t g)
                     BoundaryBase<D>::IN, BoundaryBase<D>::SET, true);
   }
 
-  // Iterate to pick up outgoing boundary fluxes if requested.
-  if (d_update_boundary_flux)
+  // Iterate to pick up angular fluxes fluxes if requested.
+  if (d_update_angular_flux)
   {
+    // Any fixed condition must be set again.
+    d_boundary->set(d_g);
     moments_type phi_g   = d_state->phi(g);
     moments_type phi_g_o = d_state->phi(g);
     d_sweeper->set_update_boundary(true);
@@ -113,8 +114,7 @@ inline void WGSolverGMRES<D>::build_rhs(State::moments_type &B)
 
   d_b->set(0.0);
 
-  // Clear the group boundary.  This is because the right hand side should
-  // be based only on fixed boundaries.
+  // Clear the group boundary.
   d_boundary->clear(d_g);
 
   // Setup boundary conditions.  This sets any conditions fixed for the solve.
@@ -164,6 +164,7 @@ inline void WGSolverGMRES<D>::build_rhs(State::moments_type &B)
   // boundaries is set to zero.
   for (int i = 0; i < B.size(); i++)
     (*d_b)[i] = B[i];
+
 }
 
 } // namespace detran

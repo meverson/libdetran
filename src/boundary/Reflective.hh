@@ -35,6 +35,7 @@ public:
   typedef BoundaryCondition<D>                Base;
   typedef typename Base::SP_bc                SP_bc;
   typedef typename Base::Boundary_T           Boundary_T;
+  typedef typename Base::SP_boundary          SP_boundary;
   typedef typename Base::SP_input             SP_input;
   typedef typename Base::SP_mesh              SP_mesh;
   typedef typename Base::SP_quadrature        SP_quadrature;
@@ -50,7 +51,7 @@ public:
   // CONSTRUCTOR & DESTRUCTOR
   //-------------------------------------------------------------------------//
 
-  Reflective(Boundary_T& boundary,
+  Reflective(SP_boundary boundary,
              const size_t side,
              SP_input input,
              SP_mesh mesh,
@@ -74,7 +75,7 @@ public:
   /// Update a boundary for a given angle following a sweep.
   void update(const size_t g, const size_t o, const size_t a);
 
-private:
+protected:
 
   //-------------------------------------------------------------------------//
   // DATA
@@ -94,10 +95,6 @@ private:
   using Base::d_quadrature;
 
 };
-
-template class Reflective<_1D>;
-template class Reflective<_2D>;
-template class Reflective<_3D>;
 
 } // end namespace detran
 

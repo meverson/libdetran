@@ -51,8 +51,11 @@ Sweeper1D<EQ>::Create(detran_utilities::InputDB::SP_input        input,
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template class Sweeper1D<Equation_SD_1D>;
-template class Sweeper1D<Equation_DD_1D>;
-template class Sweeper1D<Equation_SC_1D>;
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper1D<Equation_SD_1D>)
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper1D<Equation_DD_1D>)
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper1D<Equation_SC_1D>)
+TRANSPORT_TEMPLATE_EXPORT(detran_utilities::SP<Sweeper1D<Equation_SD_1D> >)
+TRANSPORT_TEMPLATE_EXPORT(detran_utilities::SP<Sweeper1D<Equation_DD_1D> >)
+TRANSPORT_TEMPLATE_EXPORT(detran_utilities::SP<Sweeper1D<Equation_SC_1D> >)
 
 } // end namespace detran

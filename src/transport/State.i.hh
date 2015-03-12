@@ -61,7 +61,7 @@ inline void State::set_moments(const size_t g, std::vector<double>& f)
 
 //---------------------------------------------------------------------------//
 inline const State::angular_flux_type&
-State::State::psi(const size_t g, const size_t o, const size_t a) const
+State::psi(const size_t g, const size_t o, const size_t a) const
 {
   Require(d_store_angular_flux);
   Require(d_angular_flux.size() > 0);
@@ -81,6 +81,27 @@ State::psi(const size_t g, const size_t o, const size_t a)
   (
     // Add const to *this's type and call const version
     static_cast<const State*>(this)->psi(g, o, a)
+  );
+}
+
+//---------------------------------------------------------------------------//
+inline const State::moments_type&
+State::current(const size_t g) const
+{
+  Require(d_store_current);
+  Require(g < d_number_groups);
+  return d_current[g];
+}
+
+//---------------------------------------------------------------------------//
+inline State::moments_type&
+State::current(const size_t g)
+{
+  // Cast away return type
+  return const_cast<moments_type&>
+  (
+    // Add const to *this's type and call const version
+    static_cast<const State*>(this)->current(g)
   );
 }
 

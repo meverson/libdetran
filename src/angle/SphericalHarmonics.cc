@@ -140,12 +140,11 @@ double SphericalHarmonics::get_Y_lm(const int    l,
 #else
     // Degree not implemented.
     THROW("Maximum Legendre order is 3. For higher orders, enable Boost.");
-
+	return 0;
 #endif
   }
+  return 0;
 }
-
-
 
 } // end namespace detran_angle
 

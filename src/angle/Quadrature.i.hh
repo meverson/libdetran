@@ -1,14 +1,14 @@
 //----------------------------------*-C++-*----------------------------------//
-/*!
- * \file   Quadrature.i.hh
- * \brief  Quadrature inline member definitions
- * \author Jeremy Roberts
- * \date   Sep 5, 2012
+/**
+ *  @file   Quadrature.i.hh
+ *  @brief  Quadrature inline member definitions
+ *  @author Jeremy Roberts
+ *  @date   Sep 5, 2012
  */
 //---------------------------------------------------------------------------//
 
-#ifndef QUADRATURE_I_HH_
-#define QUADRATURE_I_HH_
+#ifndef detran_angle_QUADRATURE_I_HH_
+#define detran_angle_QUADRATURE_I_HH_
 
 namespace detran_angle
 {
@@ -116,7 +116,7 @@ inline double Quadrature::angular_norm(const size_t d)
 
 inline bool Quadrature::valid_index(const size_t o, const size_t a) const
 {
-  if (o < d_number_octants and a < d_number_angles_octant)
+  if (o < d_number_octants && a < d_number_angles_octant)
   {
     return true;
   }
@@ -128,7 +128,7 @@ inline bool Quadrature::valid_index(const size_t o, const size_t a) const
 
 } // end namespace detran_angle
 
-#endif // QUADRATURE_I_HH_ 
+#endif // detran_angle_QUADRATURE_I_HH_
 
 //---------------------------------------------------------------------------//
 //              end of file Quadrature.i.hh

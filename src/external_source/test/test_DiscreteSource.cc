@@ -1,24 +1,19 @@
-//----------------------------------*-C++-*----------------------------------//
-/*!
- * \file   test_DiscreteSource.cc
- * \author Jeremy Roberts
- * \date   Jun 22, 2012
- * \brief  Test of DiscreteSource
+//----------------------------------*-C++-*-----------------------------------//
+/**
+ *  @file  test_DiscreteSource.cc
+ *  @brief Test of DiscreteSource
+ *  @note  Copyright (C) Jeremy Roberts 2012-2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 // LIST OF TEST FUNCTIONS
-#define TEST_LIST                     \
+#define TEST_LIST                  \
         FUNC(test_DiscreteSource)
 
-// Detran headers
 #include "TestDriver.hh"
 #include "DiscreteSource.hh"
 #include "Mesh2D.hh"
-#include "QuadrupleRange.hh"
-
-// Setup
-/* ... */
+#include "QuadratureFactory.hh"
 
 using namespace detran_external_source;
 using namespace detran_geometry;
@@ -32,9 +27,9 @@ int main(int argc, char *argv[])
   RUN(argc, argv);
 }
 
-//----------------------------------------------//
+//----------------------------------------------------------------------------//
 // TEST DEFINITIONS
-//----------------------------------------------//
+//----------------------------------------------------------------------------//
 
 int test_DiscreteSource(int argc, char *argv[])
 {
@@ -45,11 +40,13 @@ int test_DiscreteSource(int argc, char *argv[])
   vec_int fm(1, 2);
   vec_int mt(1, 0);
   Mesh::SP_mesh mesh(new Mesh2D(fm, fm, cm, cm, mt));
+  TEST(mesh);
 
   // Create quadrature.
-  Quadrature::SP_quadrature quad(new QuadrupleRange(2, 2));
-
-  TEST(mesh);
+  Quadrature::SP_quadrature quad;
+  QuadratureFactory qf;
+  InputDB::SP_input db = InputDB::Create();
+  quad = qf.build(db, 2);
   TEST(quad);
 
   // Create spectra.
@@ -58,7 +55,7 @@ int test_DiscreteSource(int argc, char *argv[])
   vec3_dbl spectra(num_spectra,
                    vec2_dbl(num_groups,
                             vec_dbl(quad->number_angles(), 0.0)));
-  double ref_moment[] = {0.0, 0.0};
+
   for (int g = 0; g < 2; g++)
     for (int o = 0; o < 4; o++)
       for (int a = 0; a < quad->number_angles_octant(); a++)
@@ -72,13 +69,13 @@ int test_DiscreteSource(int argc, char *argv[])
   TEST(soft_equiv(q_e.source(0, 0),    0.0));
   TEST(soft_equiv(q_e.source(0, 0, 1), 0.0));
   TEST(soft_equiv(q_e.source(0, 1),    (double)quad->number_angles()));
-  TEST(soft_equiv(q_e.source(0, 1, 1), 1/quad->weight(1)));
+  TEST(soft_equiv(q_e.source(0, 1, 1), 1/quad->weight(0)));
   TEST(soft_equiv(q_e.source(1, 0),    0.0));
   TEST(soft_equiv(q_e.source(1, 0, 0), 0.0));
 
   return 0;
 }
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of test_DiscreteSource.cc
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

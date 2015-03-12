@@ -1,19 +1,57 @@
 README - libdetran
 ------------------
 
-This is a set of simple utilites for deterministic transport, mostly
-with a focus on reactor physics.  A lot of the code is taken from
-things I've already done, adapted a bit, and put in one set of 
-libraries for use via C++, Python, or (maybe) MATLAB.  There are
-other similar projects out there (PyTRT is a very complete 
-example), but, as is true for much development work, I needed my own tools 
-for specific things.
+Detran is a set of simple utilities for deterministic transport, mostly
+with a focus on easy algorithm development for reactor physics.  Several
+aspects of the design are directly inspired by ORNL code Denovo, especially
+with respect to object orientation.  
 
-Much of the capabilities are echoed in MATLAB for in MTP.
+Current features:
+  - Multigroup diffusion, discrete ordinates, and method of 
+    characteristics
+  - Various built-in fixed source and eigenvalue solvers that can be extended
+    via use of PETSc and SLEPc
+  - Initial support for time-dependent transport with time varying sources
+    and materials as well as support for arbitrary state-dependent materials
+    for modeling feedback
+  - Executable input via HDF5 or a somewhat limited text-based input
+  - Full access via a SWIG-generated Python front end
+  - Output to Silo for visualization in Visit or Paraview
 
-Features (to be) included:
-  - Simple multigroup data container class
-  - Cartesian mesh class
-  - Quadrature for SN
-  - SN sweeping routines 
-  - Various solvers (SI, Krylov, etc.) for within-group and multigroup solves
+
+INSTALLATION
+------------
+
+The up-to-date source is available at github.com/robertsj/libdetran.  If 
+you are using a binary distribution, follow the relevant directions below.
+
+Windows Users
+-------------
+
+The installer is essentially self-contained.  Execute it and allow a short
+cut to be put in the menu.  Two items are added "Detran" and a link to 
+uninstall.  "Detran" opens up a command window with the appropriate paths
+set for using either the executable (xdetran) or the Python libraries.
+
+Linux and OS X
+--------------
+
+The tarball is a complete build.  Simply do
+
+>>> cd /path/to/where/you/want/detran
+>>> cp /path/to/Detran-X.Y.Z-Arch.tar.gz .
+>>> tar -xf Detran-X.Y.Z-Arch.tar.gz
+
+Before you can use Detran, make sure to set the environment variables.
+On Linux, that means 
+
+>>> export PATH=$PATH:/path/to/detran/bin
+>>> export LD_LIBRARY_PATH:$LD_LIBRARY_PATH:/path/to/detran/lib
+>>> export PYTHONPATH:/path/to/detran/python
+
+and on OS X, do the same but with DYLD_LIBRARY_PATH in place of 
+LD_LIBRARY_PATH.  Of course, to make these permanent, add the
+above lines to your .bash_profile (in Linux), .profile (in OS X),
+or some similar file.  These are located in /home/yourname
+or /User/yourname.
+

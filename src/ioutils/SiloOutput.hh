@@ -10,6 +10,7 @@
 #ifndef detran_ioutils_SILOOUTPUT_HH_
 #define detran_ioutils_SILOOUTPUT_HH_
 
+#include "ioutils/ioutils_export.hh"
 #include "detran_config.hh"
 #include "angle/Quadrature.hh"
 #include "geometry/Mesh.hh"
@@ -25,9 +26,17 @@ namespace detran_ioutils
 
 /**
  *  @class SiloOutput
- *  @brief Write mesh data to a Silo file.
+ *  @brief Write data to a Silo file.
+ *
+ *  This class wraps the Silo API to allow clients to write mesh data to
+ *  binary.  Special functions automate writing multigroup scalar and
+ *  angular fluxes.  Additionally, time-dependent fluxes can be written.
  */
-class SiloOutput
+/**
+ *  @example ioutils/test_SiloOutput.cc
+ *  @brief   Test of SiloOutput
+ */
+class IOUTILS_EXPORT SiloOutput
 {
 
 public:
@@ -42,6 +51,7 @@ public:
   typedef detran_geometry::Mesh::SP_mesh          SP_mesh;
   typedef detran::State::SP_state                 SP_state;
   typedef detran_angle::Quadrature::SP_quadrature SP_quadrature;
+  typedef detran_utilities::vec_dbl               vec_dbl;
 
   //-------------------------------------------------------------------------//
   // CONSTRUCTOR & DESTRUCTOR
@@ -93,6 +103,15 @@ public:
    */
   bool write_time_flux(const int step, SP_state state, bool do_psi);
 
+  /// Write a mesh scalar field
+  bool write_scalar_field(const std::string &key, const vec_dbl &data);
+
+  /// Write a mesh vector field
+  bool write_vector_field(const std::string &key,
+                          const vec_dbl     &data_i,
+                          const vec_dbl     &data_j = vec_dbl(0),
+                          const vec_dbl     &data_k = vec_dbl(0));
+
   /// Close file
   void finalize();
 
@@ -109,6 +128,10 @@ public:
     Require(material);
     d_material = material;
   }
+
+  bool make_directory(const std::string &dir);
+
+  bool set_directory(const std::string &dir);
 
 private:
 
@@ -132,6 +155,8 @@ private:
   int d_dims[3];
 
 };
+
+IOUTILS_TEMPLATE_EXPORT(detran_utilities::SP<SiloOutput>)
 
 } // end namespace detran_ioutils
 

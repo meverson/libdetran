@@ -13,10 +13,26 @@
 #include "EigenvalueManager.hh"
 #include "time/TimeStepper.hh"
 #include "Manager.hh"
+#include "time/LRA.hh"
+//
+#include "kinetics/PyTimeDependentMaterial.hh"
+#include "kinetics/LinearMaterial.hh"
 %}
 
+%feature("autodoc", "3");
+
+// Hide templates from SWIG
+%inline
+{
+#define SOLVERS_EXPORT
+#define SOLVERS_TEMPLATE_EXPORT(...)
+#define SOLVERS_INSTANTIATE_EXPORT(...)
+}
+
+%import "detran_boundary.i"
 %import "detran_kinetics.i"
 %import "detran_transport.i"
+%include "transport/DimensionTraits.hh"
 
 %include callback.i 
 
@@ -61,6 +77,32 @@ setCallbackMethod(4,
 %template(Time1D) detran::TimeStepper<detran::_1D>;
 %template(Time2D) detran::TimeStepper<detran::_2D>;
 %template(Time3D) detran::TimeStepper<detran::_3D>;
+
+%include "time/LRA.hh"
+%template(SPLRA) detran_utilities::SP<detran_user::LRA>;
+
+// Downcasts and Upcasts for generic routines
+%inline
+{
+  
+  // TD -> LRA
+  detran_utilities::SP<detran_user::LRA> 
+  as_lra(detran_utilities::SP<detran::TimeDependentMaterial>* p)
+  {
+    return detran_utilities::SP<detran_user::LRA>(*p);
+  } 
+  
+  // Set LRA physics.  Temporary hack.
+  void set_lra_physics(detran::TimeStepper<detran::_2D>* stepper,
+                       detran_utilities::SP<detran::MultiPhysics>* physics,
+                       detran_utilities::SP<detran::TimeDependentMaterial>* mat)
+  {
+    stepper->set_multiphysics(*physics,
+                              detran_user::update_T_rhs<detran::_2D>,
+                              (void *) (*mat).bp());
+  }
+  
+}
 
 //---------------------------------------------------------------------------//
 //              end of detran_solvers.i

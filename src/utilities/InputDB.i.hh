@@ -16,6 +16,7 @@
 namespace detran_utilities
 {
 
+//---------------------------------------------------------------------------//
 inline bool InputDB::check(const std::string &key) const
 {
   using std::cout;
@@ -79,113 +80,122 @@ inline bool InputDB::check(const std::string &key) const
   return false;
 }
 
+//---------------------------------------------------------------------------//
 // Get
 
 template <>
 inline int InputDB::get<int>(const std::string &key) const
 {
-  Require_msg(check(key), key);
+  Requirev(check(key), key);
   return d_data_int.find(key)->second;
 }
 template <>
 inline double InputDB::get<double>(const std::string &key) const
 {
-  Require_msg(check(key), key);
+  Requirev(check(key), key);
   return d_data_dbl.find(key)->second;
 }
 template <>
 inline vec_int InputDB::get<vec_int>(const std::string &key) const
 {
-  Require_msg(check(key), key);
+  Requirev(check(key), key);
   return d_data_vec_int.find(key)->second;
 }
 template <>
 inline vec_dbl InputDB::get<vec_dbl>(const std::string &key) const
 {
-  Require_msg(check(key), key);
+  Requirev(check(key), key);
   return d_data_vec_dbl.find(key)->second;
 }
 template <>
 inline std::string InputDB::get<std::string>(const std::string &key) const
 {
-  Require_msg(check(key), key);
+  Requirev(check(key), key);
   return d_data_str.find(key)->second;
 }
 template <>
 inline InputDB::SP_input InputDB::get<InputDB::SP_input>(const std::string &key) const
 {
-  Require_msg(check(key), key);
+  Requirev(check(key), key);
   return d_data_db.find(key)->second;
 }
 
-
+//---------------------------------------------------------------------------//
 // Put
 
 template <>
 inline void InputDB::put(const std::string &key, const int value)
 {
   d_data_int[key] = value;
-  Ensure_msg(check(key), key);
+  Ensurev(check(key), key);
 }
 template <>
 inline void InputDB::put(const std::string &key, const double value)
 {
   d_data_dbl[key] = value;
-  Ensure_msg(check(key), key);
+  Ensurev(check(key), key);
 }
 template <>
 inline void InputDB::put(const std::string &key, const vec_int value)
 {
   d_data_vec_int[key] = value;
-  Ensure_msg(check(key), key);
+  Ensurev(check(key), key);
 }
 template <>
 inline void InputDB::put(const std::string &key, const vec_dbl value)
 {
   d_data_vec_dbl[key] = value;
-  Ensure_msg(check(key), key);
+  Ensurev(check(key), key);
 }
 template <>
 inline void InputDB::put(const std::string &key, const std::string value)
 {
   d_data_str[key] = value;
-  Ensure_msg(check(key), key);
+  Ensurev(check(key), key);
 }
 template <>
 inline void InputDB::put(const std::string &key, const SP_input value)
 {
   d_data_db[key] = value;
-  Ensure_msg(check(key), key);
+  Ensurev(check(key), key);
 }
+
+//---------------------------------------------------------------------------//
 // Get map
 
 template <class T>
-inline const std::map<std::string, T>& InputDB::get_map()
+inline const std::map<std::string, T>&
+InputDB::get_map()
 {
   return d_data_int;
 }
 template <>
-inline const std::map<std::string, double>& InputDB::get_map<double>()
+inline const std::map<std::string, double>&
+InputDB::get_map<double>()
 {
   return d_data_dbl;
 }
 template <>
-inline const std::map<std::string, std::string>& InputDB::get_map<std::string>()
+inline const std::map<std::string, std::string>&
+InputDB::get_map<std::string>()
 {
   return d_data_str;
 }
 template <>
-inline const std::map<std::string, vec_int>& InputDB::get_map<vec_int>()
+inline const std::map<std::string, vec_int>&
+InputDB::get_map<vec_int>()
 {
   return d_data_vec_int;
 }
 template <>
-inline const std::map<std::string, vec_dbl>& InputDB::get_map<vec_dbl>()
+inline const std::map<std::string, vec_dbl>&
+InputDB::get_map<vec_dbl>()
 {
   return d_data_vec_dbl;
 }
 template <>
-inline const std::map<std::string, InputDB::SP_input>& InputDB::get_map<InputDB::SP_input>()
+inline const std::map<std::string, InputDB::SP_input>&
+InputDB::get_map<InputDB::SP_input>()
 {
   return d_data_db;
 }

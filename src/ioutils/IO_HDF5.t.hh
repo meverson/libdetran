@@ -69,8 +69,8 @@ hid_t IO_HDF5::set_filetype()
 
 //---------------------------------------------------------------------------//
 template <class T>
-bool IO_HDF5::read_data(SP_input input,
-                        hid_t group,
+bool IO_HDF5::read_data(SP_input 		input,
+                        hid_t 			group,
                         std::string name)
 {
   // Preconditions
@@ -117,11 +117,14 @@ bool IO_HDF5::read_data(SP_input input,
   status = H5Dclose(dset);
   status = H5Sclose(space);
 
-
-  // Postconditions
-
   return true;
 }
+
+//---------------------------------------------------------------------------//
+template <>
+bool IO_HDF5::read_data<IO_HDF5::SP_input>(SP_input      db,
+                                           hid_t         root,
+                                           std::string   name);
 
 //---------------------------------------------------------------------------//
 template <class T>
@@ -176,15 +179,40 @@ bool IO_HDF5::write_map(hid_t group,
   status = H5Tclose(filetype);
   status = H5Tclose(memtype);
 
-  // Postconditions
+  return true;
+}
+
+//---------------------------------------------------------------------------//
+template <>
+inline bool IO_HDF5::write_map<IO_HDF5::SP_input>
+   (hid_t rootgroup,
+		const char *name,
+		const std::map<std::string, SP_input> &map)
+{
+  // Create the db group
+  hid_t group = H5Gcreate(rootgroup, name,
+                          H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  // Get the size of this data set
+  int size = map.size();
+
+  // Loop and add
+  typedef std::map<std::string, SP_input> map_T;
+  map_T::const_iterator it = map.begin();
+  int i = 0;
+  for (; it != map.end(); ++it++, ++i)
+  {
+  	write(it->second, it->first, group);
+  }
+  Assert(i == size);
 
   return true;
 }
 
 //---------------------------------------------------------------------------//
 template <class T>
-bool IO_HDF5::read_map(hid_t group,
-                       const char *name,
+bool IO_HDF5::read_map(hid_t 										 group,
+                       const char 							*name,
                        std::map<std::string, T> &map)
 {
 
@@ -227,7 +255,6 @@ bool IO_HDF5::read_map(hid_t group,
   status = H5Dclose(dset);
   status = H5Sclose(space);
 
-  // Postconditions
 
   return true;
 }
@@ -286,7 +313,6 @@ bool IO_HDF5::read_vec(hid_t group, const char* name, std::vector<T> &target)
 }
 
 //---------------------------------------------------------------------------//
-/// Write a scalar (int or double) attribute
 template <class T>
 bool IO_HDF5::write_scalar_attribute
 (hid_t group, const char* name, const T &value)
@@ -306,7 +332,6 @@ bool IO_HDF5::write_scalar_attribute
 }
 
 //---------------------------------------------------------------------------//
-/// Read a scalar (int or double) attribute
 template <class T>
 bool  IO_HDF5::read_scalar_attribute
 (hid_t group, const char* name, T &value)

@@ -10,6 +10,7 @@
 #ifndef detran_angle_SPHERICAL_HARMONICS_HH_
 #define detran_angle_SPHERICAL_HARMONICS_HH_
 
+#include "angle/angle_export.hh"
 #include "utilities/Definitions.hh"
 
 namespace detran_angle
@@ -190,8 +191,8 @@ namespace detran_angle
  *
  *
  *  @refs
- * - Alain Hébert, <em>Applied Reactor Physics</em>, Presses Internationales
- *   Polytechnique, Montréal, 2009.
+ * - Alain Hebert, <em>Applied Reactor Physics</em>, Presses Internationales
+ *   Polytechnique, Montreal, 2009.
  *
  *  @example angle/test/test_SphericalHarmonics.cc
  *
@@ -199,7 +200,7 @@ namespace detran_angle
  *
 */
 //---------------------------------------------------------------------------//
-class SphericalHarmonics
+class ANGLE_EXPORT SphericalHarmonics
 {
 
 public:

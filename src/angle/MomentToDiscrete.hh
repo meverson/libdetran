@@ -98,7 +98,7 @@ namespace detran_angle
  * Test of MomentToDiscrete.
  */
 //---------------------------------------------------------------------------//
-class MomentToDiscrete
+class ANGLE_EXPORT MomentToDiscrete
 {
 
 public:
@@ -190,7 +190,6 @@ public:
    */
   const M_Row& get_row(const size_t angle) const
   {
-    Require(angle > 0);
     Require(angle < d_number_angles);
     return d_M[angle];
   }
@@ -223,9 +222,9 @@ private:
   /// Moment indexer
   SP_momentindexer d_indexer;
   /// Legendre order of anisotropic scattering.
-  const size_t d_legendre_order;
+  size_t d_legendre_order;
   /// Number of angular moments.
-  const size_t d_number_moments;
+  size_t d_number_moments;
   /// Angular mesh.
   SP_quadrature d_quadrature;
   /// Number of angles (not const so that we can change angular meshes)
@@ -248,6 +247,8 @@ private:
   void calc_row_3d(const size_t o, const size_t a);
 
 };
+
+ANGLE_TEMPLATE_EXPORT(detran_utilities::SP<MomentToDiscrete>)
 
 } // end namespace detran_angle
 

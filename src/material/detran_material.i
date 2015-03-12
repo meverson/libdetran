@@ -12,6 +12,16 @@
 #include "material/detran_material.hh"
 %}
 
+%feature("autodoc", "3");
+
+// Hide templates from SWIG
+%inline
+{
+#define MATERIAL_EXPORT
+#define MATERIAL_TEMPLATE_EXPORT(...)
+#define MATERIAL_INSTANTIATE_EXPORT(...)
+}
+
 %import "utilities/detran_utilities.i"
 
 %include "Material.hh"

@@ -1,23 +1,22 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   CurrentTally.hh
- *  @brief  CurrentTally
- *  @author Jeremy Roberts
- *  @date   Aug 7, 2012
+ *  @file  CurrentTally.hh
+ *  @brief CurrentTally class definition
+ *  @note  Copyright (C) Jeremy Roberts 2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef detran_CURRENTTALLY_HH_
 #define detran_CURRENTTALLY_HH_
 
-#include "BoundaryTally.hh"
+#include "transport/BoundaryTally.hh"
 
 namespace detran
 {
 
 /**
- *  \class CurrentTally
- *  \brief Records partial currents through coarse mesh surfaces.
+ *  @class CurrentTally
+ *  @brief Records partial currents through coarse mesh surfaces.
  *
  *  To illustrate, consider the leakage term of the transport
  *  equation in one coarse cell:
@@ -52,10 +51,10 @@ namespace detran
  *  be required.
  *
  */
-/*!
- * \example /transport/test/test_CurrentTally.cc
+/**
+ *  @example transport/test/test_CurrentTally.cc
  *
- * Test of CurrentTally.
+ *  Test of CurrentTally.
  */
 
 template <class D>
@@ -93,11 +92,11 @@ public:
    */
   CurrentTally(SP_coarsemesh mesh,
                SP_quadrature quadrature,
-               const size_t number_groups);
+               const size_t  number_groups);
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // ABSTRACT INTERFACE --- ALL TALLIES MUST IMPLEMENT THESE
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  @brief Add angular flux to the current tally
@@ -142,6 +141,10 @@ public:
              const size_t d,
              const double psi);
 
+  //--------------------------------------------------------------------------//
+  // PUBLIC FUNCTIONS
+  //--------------------------------------------------------------------------//
+
   /**
    *  @brief Get the partial current from a surface and sense
    *  @param  i       x mesh index
@@ -166,9 +169,9 @@ public:
 
 private:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // DATA
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   // Expose base class members
   using Base::d_coarsemesh;
@@ -186,14 +189,14 @@ private:
 
 } // end namespace detran
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 // INLINE MEMBER DEFINITIONS
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #include "CurrentTally.i.hh"
 
 #endif // detran_CURRENTTALLY_HH_
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of file CurrentTally.hh
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

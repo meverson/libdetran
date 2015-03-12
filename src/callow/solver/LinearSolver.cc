@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
-/*!
- * \file   LinearSolver.cc
- * \brief  LinearSolver member definitions
- * \author Jeremy Roberts
- * \date   Sep 26, 2012
+//----------------------------------*-C++-*-----------------------------------//
+/**
+ *  @file  LinearSolver.cc
+ *  @brief LinearSolver member definitions
+ *  @note  Copyright (C) Jeremy Roberts 2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #include "LinearSolver.hh"
 // preconditioners
@@ -15,39 +14,31 @@
 namespace callow
 {
 
-//-------------------------------------------------------------------------//
-// CONSTRUCTOR & DESTRUCTOR
-//-------------------------------------------------------------------------//
-
+//----------------------------------------------------------------------------//
 LinearSolver::LinearSolver(const double atol,
                            const double rtol,
                            const int    maxit,
                            std::string  name)
-  : d_absolute_tolerance(atol)
+  : d_name(name)
+  , d_absolute_tolerance(atol)
   , d_relative_tolerance(rtol)
   , d_maximum_iterations(maxit)
   , d_residual(maxit + 1, 0)
   , d_number_iterations(0)
+  , d_pc_side(NONE)
   , d_monitor_level(2)
   , d_monitor_diverge(true)
   , d_norm_type(L2)
-  , d_name(name)
-  , d_pc_side(NONE)
+  , d_status(RUNNING)
 {
   Require(d_absolute_tolerance >= 0.0);
   Require(d_relative_tolerance >= 0.0);
   Require(d_maximum_iterations >  0);
 }
 
-//-------------------------------------------------------------------------//
-// PUBLIC FUNCTIONS
-//-------------------------------------------------------------------------//
-
-void LinearSolver::
-set_operators(SP_matrix A,
-              SP_db db)
+//----------------------------------------------------------------------------//
+void LinearSolver::set_operators(SP_matrix A, SP_db db)
 {
-  // Preconditions
   Require(A);
   d_A = A;
   Ensure(d_A->number_rows() == d_A->number_columns());
@@ -77,6 +68,7 @@ set_operators(SP_matrix A,
 
 }
 
+//----------------------------------------------------------------------------//
 void LinearSolver::
 set_tolerances(const double atol, const double rtol, const int maxit)
 {
@@ -88,7 +80,7 @@ set_tolerances(const double atol, const double rtol, const int maxit)
   Require(d_maximum_iterations >= 0);
 }
 
-// print out iteration and residual for initial
+//----------------------------------------------------------------------------//
 bool LinearSolver::monitor_init(double r)
 {
   d_residual[0] = r;
@@ -115,6 +107,7 @@ bool LinearSolver::monitor(int it, double r)
   if (d_monitor_level > 1)
     printf("iteration: %5i    residual: %12.8e \n", it, r);
  // Assert(it > 0);
+  bool value = false;
   if (r < std::max(d_relative_tolerance * d_residual[0],
                    d_absolute_tolerance))
   {
@@ -124,15 +117,25 @@ bool LinearSolver::monitor(int it, double r)
              d_name.c_str(), it, r );
     }
     d_status = SUCCESS;
-    return true;
+    value = true;
   }
-  else if (d_monitor_diverge and it >  1 and r - d_residual[it - 1] > 0.0)
+  else if (d_monitor_diverge && it >  1 && r - d_residual[it - 1] > 0.0)
   {
     if (d_monitor_level) printf("*** %s diverged \n", d_name.c_str());
     d_status = DIVERGE;
-    return true;
+    value = true;
   }
-  return false;
+  else if (it == d_maximum_iterations - 1)
+  {
+    if (d_monitor_level) printf("*** max it\n");
+    d_status = MAXIT;
+    value = true;
+  }
+  else
+  {
+    d_status = RUNNING;
+  }
+  return value;
 }
 
 

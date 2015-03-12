@@ -29,17 +29,44 @@
 #ifndef CALLOW_CONFIG_HH_
 #define CALLOW_CONFIG_HH_
 
+// disable signed-to-unsigned
+#pragma warning (disable : 4018)
+// disable multiple copy ctor
+#pragma warning (disable : 4521)
+// safe fopen, etc.
+#pragma warning (disable : 4996)
+// int to bool
+#pragma warning (disable : 4800)
+
 // include detran configuration
-#include "config/detran_config.hh"
+#include "detran_config.hh"
+
+// callow export stuff
+#include "callow/callow_export.hh"
 
 #ifdef DETRAN_ENABLE_PETSC
 #define CALLOW_ENABLE_PETSC
 #include "petsc.h"
+#else
+namespace callow
+{
+typedef int* KSP;
+typedef int* PC;
+typedef int* Mat;
+typedef int* Vec;
+typedef int PetscErrorCode;
+}
 #endif
 
 #ifdef DETRAN_ENABLE_SLEPC
 #define CALLOW_ENABLE_SLEPC
 #include "slepc.h"
+#else
+namespace callow
+{
+typedef int* EPS;
+typedef int* ST;
+}
 #endif
 
 //#define CALLOW_ENABLE_PETSC_OPS

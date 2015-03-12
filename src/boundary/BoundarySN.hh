@@ -18,10 +18,13 @@
 namespace detran
 {
 
+template <class D> class BoundaryCondition;
+
 //---------------------------------------------------------------------------//
 /**
  *  @class BoundarySN
  *  @brief Boundary flux container for SN problems.
+ *  @todo Switch accessor to match diffusion (or vv)
  */
 //---------------------------------------------------------------------------//
 template <class D>
@@ -48,6 +51,7 @@ public:
   typedef detran_geometry::Mesh                     Mesh;
   typedef detran_utilities::vec_dbl                 vec_dbl;
   typedef detran_utilities::size_t                  size_t;
+  typedef D                                         D_T;
 
   using Base::IN;
   using Base::OUT;
@@ -66,12 +70,6 @@ public:
   BoundarySN(SP_input        input,
              SP_mesh         mesh,
              SP_quadrature   quadrature);
-
-  /// SP Constructor
-  static SP_base
-  Create(SP_input         input,
-         SP_mesh          mesh,
-         SP_quadrature    quadrature);
 
   //-------------------------------------------------------------------------//
   // ABSTRACT INTERFACE -- ALL BOUNDARY TYPES MUST IMPLEMENT THESE
@@ -142,6 +140,37 @@ public:
   SP_quadrature get_quadrature() const
   {
     return d_quadrature;
+  }
+
+  //-------------------------------------------------------------------------//
+  // PUBLIC FUNCTIONS
+  //-------------------------------------------------------------------------//
+
+  /// Clear any fixed boundary conditions.
+  void clear_bc()
+  {
+    for (size_t s = 0; s < d_bc.size(); ++s)
+    {
+      d_bc[s]->clear();
+    }
+  }
+
+  /// Display boundray information and contents
+  void display(bool inout) const;
+
+  /// Set the boundary condition
+  void set_bc(const size_t side, SP_bc b)
+  {
+    Require(side < D::dimension*2);
+    Require(b);
+    d_bc[side] = b;
+  }
+
+  /// Get the boundary condition.
+  SP_bc bc(const size_t side)
+  {
+    Require(side < D::dimension*2);
+    return d_bc[side];
   }
 
 private:

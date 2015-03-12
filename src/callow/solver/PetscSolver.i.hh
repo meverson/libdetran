@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   PetscSolver.i.hh
- *  @author robertsj
- *  @date   Sep 20, 2012
- *  @brief  PetscSolver inline member definitions
+ *  @file  PetscSolver.i.hh
+ *  @brief PetscSolver inline member definitions
+ *  @note  Copyright (C) 2013 Jeremy Roberts
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef callow_PETSCSOLVER_I_HH_
 #define callow_PETSCSOLVER_I_HH_
@@ -15,10 +14,7 @@
 namespace callow
 {
 
-//---------------------------------------------------------------------------//
-// SOLVE
-//---------------------------------------------------------------------------//
-
+//----------------------------------------------------------------------------//
 inline void PetscSolver::
 solve_impl(const Vector &b, Vector &x)
 {
@@ -28,10 +24,12 @@ solve_impl(const Vector &b, Vector &x)
   ierr = KSPSolve(d_petsc_solver,
                   const_cast<Vector*>(&b)->petsc_vector(),
                   x.petsc_vector());
+  set_status(SUCCESS);
 
   Insist(!ierr, "Error in KSPSolve.");
 }
 
+//----------------------------------------------------------------------------//
 inline PetscErrorCode
 petsc_ksp_monitor(KSP ksp, PetscInt it, PetscReal rnorm, void* ctx)
 {
@@ -43,3 +41,7 @@ petsc_ksp_monitor(KSP ksp, PetscInt it, PetscReal rnorm, void* ctx)
 } // end namespace callow
 
 #endif /* callow_PETSCSOLVER_I_HH_ */
+
+//----------------------------------------------------------------------------//
+//              end of file PetscSolver.i.hh
+//----------------------------------------------------------------------------//

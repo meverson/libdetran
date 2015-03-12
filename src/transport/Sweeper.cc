@@ -31,9 +31,8 @@ Sweeper<D>::Sweeper(SP_input input,
   , d_adjoint(false)
   , d_number_sweeps(0)
   , d_update_boundary(false)
-  , d_ordered_octants(std::pow(2, D::dimension), 0)
+  , d_ordered_octants(std::pow((float)2, (int)D::dimension), 0)
 {
-  // Preconditions
   Require(d_input);
   Require(d_mesh);
   Require(d_material);
@@ -44,7 +43,11 @@ Sweeper<D>::Sweeper(SP_input input,
 
   // Check whether we keep psi.
   if (d_input->check("store_angular_flux"))
-    d_update_psi = d_input->get<int>("store_angular_flux");
+    d_update_psi = (0 != d_input->get<int>("store_angular_flux"));
+
+  // Check for the adjoint mode.
+  if (d_input->check("adjoint"))
+    d_adjoint = 0 != d_input->get<int>("adjoint");
 
   // Perform templated setup tasks.
   setup();
@@ -130,12 +133,12 @@ void Sweeper<D>::setup_spatial_indices()
                                  vec_int(2, 0)));
   // Octants for each dimension that don't need sweep in negative direction
   int oct[3][4] = {{0,3,4,7}, {0,1,4,5}, {0,1,2,3}};
-  for (int o = 0; o < d_quadrature->number_octants(); ++o)
+  for (size_t o = 0; o < d_quadrature->number_octants(); ++o)
   {
-    for (int dim = 0; dim < D::dimension; ++dim)
+    for (size_t dim = 0; dim < D::dimension; ++dim)
     {
-      if ((o == oct[dim][0] or o == oct[dim][1]  or
-           o == oct[dim][2] or o == oct[dim][3]) and !d_adjoint)
+      if ((o == oct[dim][0] || o == oct[dim][1]  ||
+           o == oct[dim][2] || o == oct[dim][3]   ))// && !d_adjoint)
       {
         d_space_ranges[o][dim][0] = 0;
         d_space_ranges[o][dim][1] = 1;
@@ -164,7 +167,7 @@ void Sweeper<D>::setup_octant_indices(SP_boundary boundary)
   }
 
   // Sort the octants if their are mixed conditions
-  if (boundary->has_reflective() and boundary->has_vacuum())
+  if (boundary->has_reflective() && boundary->has_vacuum())
   {
     // Reset to cyclic for ordering.
     for (int i = 0; i < no; ++i)
@@ -216,8 +219,8 @@ void Sweeper<D>::setup_octant_indices(SP_boundary boundary)
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template class Sweeper<_1D>;
-template class Sweeper<_2D>;
-template class Sweeper<_3D>;
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper<_1D>)
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper<_2D>)
+TRANSPORT_INSTANTIATE_EXPORT(Sweeper<_3D>)
 
 } // end namespace detran

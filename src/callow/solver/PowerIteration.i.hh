@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   PowerIteration.i.hh
- *  @brief  PowerIteration inline member definitions
- *  @author Jeremy Roberts
- *  @date   Sep 24, 2012
+ *  @file  PowerIteration.i.hh
+ *  @brief PowerIteration inline member definitions
+ *  @note  Copyright (C) 2012-2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -38,9 +37,6 @@ inline void PowerIteration::solve_impl(Vector &x, Vector &x0)
   // Normalize guess to unity
   lambda = x0.norm(L1);
   x0.scale(1.0 / lambda);
-
-  // Next iteration to check eigenvector convergence.
-  int check_error = 0;
 
   // Do power iterations
   for (int i = 0; i < d_maximum_iterations; ++i)

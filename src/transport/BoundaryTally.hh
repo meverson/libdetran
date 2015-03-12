@@ -1,18 +1,18 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   BoundaryTally.hh
- *  @brief  BoundaryTally class definition
- *  @author Jeremy Roberts
- *  @date   Oct 17, 2012
+ *  @file  BoundaryTally.hh
+ *  @brief BoundaryTally class definition
+ *  @note  Copyright (C) Jeremy Roberts 2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef detran_BOUNDARYTALLY_HH_
 #define detran_BOUNDARYTALLY_HH_
 
-#include "CoarseMesh.hh"
-#include "DimensionTraits.hh"
-#include "Equation.hh"
+#include "transport/transport_export.hh"
+#include "transport/CoarseMesh.hh"
+#include "transport/DimensionTraits.hh"
+#include "transport/Equation.hh"
 #include "angle/Quadrature.hh"
 #include "utilities/Definitions.hh"
 #include "utilities/SP.hh"
@@ -23,8 +23,7 @@ namespace detran
 
 /**
  *  @class BoundaryTally
- *  @brief Base class for recording angular flux function at
- *         coarse mesh boundaries
+ *  @brief Base class for recording functions of coarse mesh boundary fluxes
  */
 
 template <class D>
@@ -33,9 +32,9 @@ class BoundaryTally
 
 public:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // ENUMERATIONS
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   enum DIRECTED
   {
@@ -50,9 +49,9 @@ public:
     POSITIVE
   };
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // TYPEDEFS
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   typedef detran_utilities::SP<BoundaryTally>           SP_tally;
   typedef CoarseMesh::SP_coarsemesh                     SP_coarsemesh;
@@ -66,26 +65,26 @@ public:
   typedef detran_utilities::vec2_dbl                    vec2_dbl;
   typedef detran_utilities::vec3_dbl                    vec3_dbl;
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // CONSTRUCTOR & DESTRUCTOR
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  @brief Constructor
-   *  @param mesh
+   *  @param coarsemesh     Coarse mesher that has both coarse and fine meshes
    *  @param quadrature
    *  @param number_groups
    */
   BoundaryTally(SP_coarsemesh coarsemesh,
                 SP_quadrature quadrature,
-                const size_t number_groups);
+                const size_t  number_groups);
 
   /// Virtual destructor
   virtual ~BoundaryTally(){ /* ... */ }
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // ABSTRACT INTERFACE --- ALL TALLIES MUST IMPLEMENT THESE
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  \brief Add angular flux to the current tally
@@ -138,9 +137,9 @@ public:
 
 protected:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // DATA
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /// Coarse mesh
   SP_coarsemesh d_coarsemesh;
@@ -156,9 +155,9 @@ protected:
   /// \note Why does initializing require new standard?
   size_t d_perpendicular_index[3][2];
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // IMPLEMENTATION
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   inline size_t index(const size_t i,
                       const size_t j,
@@ -173,7 +172,6 @@ protected:
 
     size_t nx = d_coarsemesh->get_coarse_mesh()->number_cells_x();
     size_t ny = d_coarsemesh->get_coarse_mesh()->number_cells_y();
-    size_t nz = d_coarsemesh->get_coarse_mesh()->number_cells_z();
     if (axis == 0)
       return i + j * (nx + 1) + k * (nx + 1) * ny;
     else if (axis == 1)
@@ -186,7 +184,7 @@ protected:
 
 };
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 template <class D>
 BoundaryTally<D>::BoundaryTally(SP_coarsemesh   coarsemesh,
                                 SP_quadrature   quadrature,
@@ -200,11 +198,6 @@ BoundaryTally<D>::BoundaryTally(SP_coarsemesh   coarsemesh,
   Require(d_quadrature);
 
   SP_mesh mesh = d_coarsemesh->get_coarse_mesh();
-
-  size_t nx = d_coarsemesh->get_coarse_mesh()->number_cells_x();
-  size_t ny = d_coarsemesh->get_coarse_mesh()->number_cells_y();
-  size_t nz = d_coarsemesh->get_coarse_mesh()->number_cells_z();
-  size_t n[] = { (nx+1)*ny*nz, nx*(ny+1)*nz, nx*ny*(nz+1) };
 
   // Octant shift
   d_octant_shift.resize(3, vec_int(8, 0));
@@ -249,6 +242,6 @@ BoundaryTally<D>::BoundaryTally(SP_coarsemesh   coarsemesh,
 
 #endif // detran_BOUNDARYTALLY_HH_
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of file BoundaryTally.hh
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

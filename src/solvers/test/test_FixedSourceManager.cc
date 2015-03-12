@@ -86,7 +86,7 @@ SP_mesh test_FixedSourceManager_mesh(int d)
 {
   vec_dbl cm(2, 0.0); cm[1] = 10.0;
   vec_dbl cc(2, 0.0); cc[1] = 0.1;
-  vec_int fm(1, 100);
+  vec_int fm(1, 10);
   vec_int ff(1, 1);
   vec_int mat_map(1, 0);
   SP_mesh mesh;
@@ -202,10 +202,6 @@ double compute_leakage(typename BoundarySN<D>::SP_boundary b,
   int remdims[3][2] = {{1,2}, {0,2}, {0,1}};
   // Cell indices
   int ijk[3] = {0, 0, 0};
-  int &i = ijk[0];
-  int &j = ijk[1];
-  int &k = ijk[2];
-
   // Loop over all dimensions
   for (int dim0 = 0; dim0 < D::dimension; ++dim0)
   {
@@ -222,7 +218,7 @@ double compute_leakage(typename BoundarySN<D>::SP_boundary b,
 
       // Index and width along this direction
       ijk[dim0] = bound[dir];
-      double W  = mesh->width(dim0, ijk[dim0]);
+      //double W  = mesh->width(dim0, ijk[dim0]);
       // Loop over secondaries dimensions on this surface
       for (ijk[dim1] = 0; ijk[dim1] < mesh->number_cells(dim1); ++ijk[dim1])
       {
@@ -410,10 +406,10 @@ int test_FixedSourceManager_iterate(int argc, char *argv[])
 
   typedef FixedSourceManager<_1D>       Manager_T;
   typedef BoundarySN<_1D>               B_T;
-  typedef typename B_T::SP_boundary     SP_boundary;
+  typedef B_T::SP_boundary     SP_boundary;
 
   // Input, materials, and mesh
-  typename Manager_T::SP_input input = test_FixedSourceManager_input();
+  Manager_T::SP_input input = test_FixedSourceManager_input();
   SP_material mat = test_FixedSourceManager_material();
   SP_mesh mesh = test_FixedSourceManager_mesh(1);
   input->put<int>("number_groups", mat->number_groups());

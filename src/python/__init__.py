@@ -1,25 +1,11 @@
 # src/python/detran/__init__.py
 #
-# Copyright 2012 Jeremy Roberts <j.alyn.roberts@gmail.com>
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-# MA 02110-1301, USA.
+# Copyright (C) 2013 Jeremy Roberts <j.alyn.roberts@gmail.com>
 
 from utilities import *
 from angle import *
 from callow import *
+from orthog import *
 from geometry import *
 from material import *
 from external_source import *
@@ -30,20 +16,34 @@ from ioutils import *
 from solvers import *
 from postprocess import *
 
-from pydetranutils import *
+has_numpy = False
+try :
+  import numpy as np
+  has_numpy = True
+except ImportError :
+  print "Warning: Could not import Numpy.  Numpy is highly recommended."
+  print "         Detran utilities are unavailable without Numpy."
+  
+if has_numpy :
+  try :
+    from pydetranutils import *
+  except ImportError :
+    print "Warning: Could not import Detran utilities."
 
-import numpy as np
+import sys
 
-#__all__ = ["utilities",         \
-#           "angle",             \
-#           "callow",            \
-#           "geometry",          \
-#           "material",          \
-#           "external_source",   \
-#           "boundary",          \
-#           "transport",         \
-#           "ioutils",           \
-#           "kinetics",          \
-#           "solvers",           \
-#           "postprocess"        ]
+global __detran_python_manager__
 
+# Instantiate this class to ensure it outlives Detran objects.  Then, its
+# destructor can safely finalize PETsc and such.
+class PyManager :
+  def __init__(self, argv) :
+    self.M = Manager()
+    self.M.initialize(argv)
+
+__detran_python_manager__ = PyManager(sys.argv)
+
+import atexit
+def pyfinalize():
+  __detran_python_manager__.M.finalize()
+atexit.register(pyfinalize)

@@ -10,7 +10,9 @@
 #ifndef detran_STATE_HH_
 #define detran_STATE_HH_
 
+#include "transport/transport_export.hh"
 #include "angle/Quadrature.hh"
+#include "angle/MomentIndexer.hh"
 #include "geometry/Mesh.hh"
 #include "utilities/Definitions.hh"
 #include "utilities/InputDB.hh"
@@ -29,28 +31,14 @@ namespace detran
  *  defined by the unknown flux moments (scalar flux and higher moments),
  *  as these quantities are sufficient to describe reaction rates, which is
  *  typically what we need (e.g. doses or fission rates).  For eigenvalue
- *  problems, keff is also important.
- *
- *  When needed, the underlying data array for a group can be accessed as
- *  demonstrated by the following (I <b>think!</b>).
- *  \code
-      // Get moments by reference.
-      moments_type moments = state.moments();
-      double *localgrouparray;
-      localgrouparray = &moments[g][0];
- *  \endcode
- *  This would be useful e.g. for filling a PETSc Vec object to use in one
- *  of their Krylov schemes (rather than copying into another array).
- *
- *  \todo Test whether referencing a Moments_Field object at [0] actually
- *        yields the array underneath.
+ *  problems, keff is also included.
  *
  *  Relevant input entries:
  *  - number_groups (int)
  *  - store_angular_flux (int)
  */
 //---------------------------------------------------------------------------//
-class State
+class TRANSPORT_EXPORT State
 {
 
 public:
@@ -63,6 +51,7 @@ public:
   typedef detran_utilities::InputDB::SP_input           SP_input;
   typedef detran_geometry::Mesh::SP_mesh                SP_mesh;
   typedef detran_angle::Quadrature::SP_quadrature       SP_quadrature;
+  typedef detran_angle::MomentIndexer::SP_momentindexer SP_momentindexer;
   typedef detran_utilities::vec_dbl                     moments_type;
   typedef std::vector<moments_type>                     vec_moments_type;
   typedef std::vector<moments_type>                     group_moments_type;
@@ -101,7 +90,6 @@ public:
 
   /**
    *  @brief Const accessor to a group moments field.
-   *
    *  @param    g   Group of field requested.
    *  @return       Constant reference to group moment vector.
    */
@@ -109,14 +97,6 @@ public:
 
   /**
    *  @brief Mutable accessor to a group moments field.
-   *
-   *  This is to be used for copying, i.e.
-   *  \code
-   *    State::moments_type new_phi;
-   *    // compute new_phi and update
-   *    moments->phi(g) = new_phi;
-   *  \endcode
-   *
    *  @param    g   Group of field requested.
    *  @return       Mutable reference to group moment vector.
    */
@@ -137,7 +117,6 @@ public:
 
   /**
    *  @brief Const accessor to a group angular flux.
-   *
    *  @param    g   Group of field requested.
    *  @param    o   Octant
    *  @param    a   Angle within octant
@@ -148,13 +127,18 @@ public:
                                const size_t a) const;
   /**
    *  @brief Mutable accessor to a group angular flux.
-   *
    *  @param    g   Group of field requested.
    *  @param    o   Octant
    *  @param    a   Angle within octant
    *  @return       Mutable reference to group angular flux vector.
    */
   angular_flux_type& psi(const size_t g, const size_t o, const size_t a);
+
+  /// Const accessor to a group current field.
+  const moments_type& current(const size_t g) const;
+
+  /// Mutable accessor to a group current field.
+  moments_type& current(const size_t g);
 
   double eigenvalue() const
   {
@@ -174,6 +158,11 @@ public:
   SP_mesh get_mesh()
   {
     return d_mesh;
+  }
+
+  SP_momentindexer get_momentindexer()
+  {
+    return d_momentindexer;
   }
 
   size_t moments_size() const
@@ -196,8 +185,21 @@ public:
     return d_store_angular_flux;
   }
 
+  bool store_current() const
+  {
+    return d_store_current;
+  }
+
+  bool adjoint() const
+  {
+    return d_adjoint;
+  }
+
   /// Zero out the state
   void clear();
+
+  /// Scale the state by a constant
+  void scale(const double f);
 
   /// Format display of flux
   void display() const;
@@ -210,32 +212,34 @@ private:
 
   /// Input database
   SP_input d_input;
-
   /// Mesh
   SP_mesh d_mesh;
-
   /// Angular quadrature
   SP_quadrature d_quadrature;
-
-  /// Boundary fluxes
-  //SP_boundary d_boundary;
-
+  /// Spherical harmonic moment indexer
+  SP_momentindexer d_momentindexer;
   /// Number of energy groups
-  int d_number_groups;
-
+  size_t d_number_groups;
+  /// Number of moments per unknown
+  size_t d_number_moments;
   /// Cell-center scalar flux moments, [energy, (space-moment)]
   vec_moments_type d_moments;
-
   /// Cell-center angular flux, [energy, angle, (space)]
   vec_angular_flux_type d_angular_flux;
-
+  /// Cell-center current magnitude, e.g. sqrt(Jx^2+Jy^2)
+  vec_moments_type d_current;
   /// k-eigenvalue
   double d_eigenvalue;
-
   /// Store the angular flux?
   bool d_store_angular_flux;
+  /// Store the current?
+  bool d_store_current;
+  /// Adjoint
+  bool d_adjoint;
 
 };
+
+TRANSPORT_TEMPLATE_EXPORT(detran_utilities::SP<State>)
 
 } // end namespace detran
 

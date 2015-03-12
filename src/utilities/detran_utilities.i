@@ -9,11 +9,11 @@
 %module(package="detran") utilities
 %{
 #include <stddef.h>
+#include "utilities/utilities_export.hh"
 #include "utilities/Definitions.hh"
 #include "utilities/DBC.hh"
 #include "utilities/InputDB.hh"
 #include "utilities/MathUtilities.hh"
-#include "utilities/Point.hh"
 #include "utilities/SP.hh"
 %}
 
@@ -23,10 +23,17 @@
 %include std_string.i
 %include std_vector.i
 
-// SP
-//%include "SP.hh"
+%feature("autodoc", "3");
 
-// We define a dummy SP interface to stop some annoying warnings from SWIG
+// Hide templates from SWIG
+%inline
+{
+#define UTILITIES_EXPORT
+#define UTILITIES_TEMPLATE_EXPORT(...)
+#define UTILITIES_INSTANTIATE_EXPORT(...)
+}
+
+// Dummy SP interface to stop some annoying warnings from SWIG
 namespace detran_utilities
 {
 
@@ -56,33 +63,21 @@ public:
 
 // Vectors
 %include "Definitions.hh"
-
 namespace std
 {
-  %template(vec_int)  vector<int>;
-  %template(vec2_int) vector<vector<int> >;
-  %template(vec3_int) vector<vector<vector<int> > >;
-  %template(vec_dbl)  vector<double>;
-  %template(vec2_dbl) vector<vector<double> >;
-  %template(vec3_dbl) vector<vector<vector<double> > >;
-  %template(vec_size_t)  vector<unsigned int>;
-  %template(vec2_size_t) vector<vector<unsigned int> >;
-  %template(vec3_size_t) vector<vector<vector<unsigned int> > >;
+  %template(vec_int)      vector<int>;
+  %template(vec2_int)     vector<vector<int> >;
+  %template(vec3_int)     vector<vector<vector<int> > >;
+  %template(vec_dbl)      vector<double>;
+  %template(vec2_dbl)     vector<vector<double> >;
+  %template(vec3_dbl)     vector<vector<vector<double> > >;
+  %template(vec_size_t)   vector<unsigned int>;
+  %template(vec2_size_t)  vector<vector<unsigned int> >;
+  %template(vec3_size_t)  vector<vector<vector<unsigned int> > >;
 }
 
-// Input
 %include "InputDB.hh"
-
-// Math utilities
-%include "MathUtilities.hh"
-
-// 3-D point
-%include "Point.hh"
-
-// SP template of input database
-%template(InputDBSP) detran_utilities::SP<detran_utilities::InputDB>;
-
-// Template getters and setters
+%template(InputDBSP)    detran_utilities::SP<detran_utilities::InputDB>;
 %template(get_int)      detran_utilities::InputDB::get<int>;
 %template(get_dbl)      detran_utilities::InputDB::get<double>;
 %template(get_vec_int)  detran_utilities::InputDB::get<detran_utilities::vec_int>;
@@ -96,7 +91,9 @@ namespace std
 %template(put_str)      detran_utilities::InputDB::put<std::string>;
 %template(put_spdb)     detran_utilities::InputDB::put<detran_utilities::InputDB::SP_input>;
 
-// Anyhere in C/C++ that we need (argc, argv), 
+%include "MathUtilities.hh"
+
+// Anyhere in C/C++ that we need (argc, argv)
 %typemap(in) (int argc, char *argv[]) 
 {
   // Check if is a list
@@ -128,6 +125,8 @@ namespace std
 %typemap(freearg) (int argc, char *argv[]) {
   free((char *) $2);
 }
+
+// see http://embedded.eecs.berkeley.edu/Alumni/pinhong/scriptEDA/pyTypemapFAQ.html#32
 
 //---------------------------------------------------------------------------//
 //              end of detran_utilities.i

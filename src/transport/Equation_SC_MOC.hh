@@ -54,7 +54,7 @@ namespace detran
  */
 //---------------------------------------------------------------------------//
 
-class Equation_SC_MOC: public Equation_MOC
+class TRANSPORT_EXPORT Equation_SC_MOC: public Equation_MOC
 {
 
 public:
@@ -80,12 +80,13 @@ public:
   //-------------------------------------------------------------------------//
 
   /// Solve for the cell-center and outgoing edge fluxes.
-  inline void solve(const size_t region,
-                    const double length,
-                    moments_type &source,
-                    double &psi_in,
-                    double &psi_out,
-                    moments_type &phi,
+  inline void solve(const size_t       region,
+                    const double       length,
+                    const double       width,
+                    moments_type      &source,
+                    double            &psi_in,
+                    double            &psi_out,
+                    moments_type      &phi,
                     angular_flux_type &psi);
 
 

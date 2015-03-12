@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   Sweeper1D.i.hh
- *  @author Jeremy Roberts
- *  @date   Mar 24, 2012
- *  @brief  Sweeper1D inline member definitions.
+ *  @file  Sweeper1D.i.hh
+ *  @brief Sweeper1D inline member definitions
+ *  @note  Copyright (C) 2012-2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -22,7 +21,6 @@ namespace detran
 template <class EQ>
 inline void Sweeper1D<EQ>::sweep(moments_type &phi)
 {
-  // Preconditions
   Require(d_g < d_material->number_groups());
 
   // Reset the flux moments
@@ -44,6 +42,9 @@ inline void Sweeper1D<EQ>::sweep(moments_type &phi)
   // Reset the flux moments
   phi_local.resize(d_mesh->number_cells(), 0.0);
 
+  // Reset the boundary flux tally
+  if (d_tally) d_tally->reset(d_g);
+
   // Initialize discrete sweep source vector.
   SweepSource<_1D>::sweep_source_type source(d_mesh->number_cells(), 0.0);
 
@@ -64,7 +65,7 @@ inline void Sweeper1D<EQ>::sweep(moments_type &phi)
 
     // Sweep over all angles.
     #pragma omp for
-    for (int a = 0; a < d_quadrature->number_angles_octant(); a++)
+    for (size_t a = 0; a < d_quadrature->number_angles_octant(); ++a)
     {
 
       // Get sweep source for this angle.
@@ -88,10 +89,11 @@ inline void Sweeper1D<EQ>::sweep(moments_type &phi)
       int di = d_space_ranges[o][0][1];
 
       // Tally the incident flux.
-      if (d_tally) d_tally->tally(i, 0, 0, d_g, o, a, Tally_T::X_DIRECTED, psi_out);
+      if (d_tally)
+        d_tally->tally(i, 0, 0, d_g, o, a, Tally_T::X_DIRECTED, psi_out);
 
       // Sweep over all cells.
-      for (int ii = 0; ii < d_mesh->number_cells_x(); ++ii, i += di)
+      for (size_t ii = 0; ii < d_mesh->number_cells_x(); ++ii, i += di)
       {
         // Set the incident cell surface flux.
         psi_in = psi_out;
@@ -100,7 +102,8 @@ inline void Sweeper1D<EQ>::sweep(moments_type &phi)
         equation.solve(i, 0, 0, source, psi_in, psi_out, phi, psi);
 
         // Tally the outgoing cell flux
-        if (d_tally) d_tally->tally(i, 0, 0, d_g, o, a, Tally_T::X_DIRECTED, psi_out);
+        if (d_tally)
+          d_tally->tally(i, 0, 0, d_g, o, a, psi_out);
 
       } // end x loop
 

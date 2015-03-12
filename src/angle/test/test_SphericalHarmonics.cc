@@ -1,11 +1,10 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-------------------=---------------//
 /**
- *  @file   test_SphericalHarmonics.cc
- *  @author Jeremy Roberts
- *  @date   Apr 1, 2012
- *  @brief  Test of SphericalHarmonics class.
+ *  @file  test_SphericalHarmonics.cc
+ *  @brief Test of SphericalHarmonics class.
+ *  @note  Copyright (C) Jeremy Roberts 2012-2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 // LIST OF TEST FUNCTIONS
 #define TEST_LIST                                 \
@@ -23,7 +22,7 @@ using boost::math::spherical_harmonic_i;
 using boost::math::factorial;
 #endif
 #include "utilities/Constants.hh"
-#include "cstdio"
+#include <cstdio>
 // Setup
 /* ... */
 
@@ -39,13 +38,12 @@ int main(int argc, char *argv[])
   RUN(argc, argv);
 }
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 // TEST DEFINITIONS
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 int test_SphericalHarmonics(int argc, char *argv[])
 {
-  double val;
   double mu  = 0.350021174581540677777041;
   double eta = 0.350021174581540677777041;
   double xi  = 0.868890300722201205229788;
@@ -53,10 +51,6 @@ int test_SphericalHarmonics(int argc, char *argv[])
   TEST(soft_equiv(SphericalHarmonics::Y_lm(1,-1, mu, eta, xi), eta));
   TEST(soft_equiv(SphericalHarmonics::Y_lm(1, 0, mu, eta, xi), xi));
   TEST(soft_equiv(SphericalHarmonics::Y_lm(1, 1, mu, eta, xi), mu));
-
-  double phi = std::acos(mu / std::sqrt(1.0 - xi*xi));
-  double theta = std::acos(xi);
-
   return 0;
 }
 
@@ -80,12 +74,10 @@ int test_SphericalHarmonics(int argc, char *argv[])
 int test_SphericalHarmonics_integration(int argc, char *argv[])
 {
   InputDB::SP_input inp(new InputDB());
-  inp->put<int>("quad_number_polar_octant",   9);
-  inp->put<int>("quad_number_azimuth_octant", 3);
-  inp->put<std::string>("quad_type", "quadruplerange");
-  QuadratureFactory qf;
-  QuadratureFactory::SP_quadrature Q;
-  qf.build(Q, inp, 3);
+  inp->put<int>("quad_number_polar_octant",   4);
+  inp->put<int>("quad_number_azimuth_octant", 4);
+  inp->put<std::string>("quad_type", "asqr-asdr");
+  QuadratureFactory::SP_quadrature Q = QuadratureFactory::build(inp, 3);
 
   int L = 6;
 
@@ -121,7 +113,7 @@ int test_SphericalHarmonics_integration(int argc, char *argv[])
         for (int a = 0; a < Q->number_angles_octant(); ++a)
         {
           double mu  = Q->mu(o, a);
-          double eta = Q->eta(o, a);
+          //double eta = Q->eta(o, a);
           double xi  = Q->xi(o, a);
           val += Q->weight(a) * std::pow(mu, m) * std::pow(xi, l);
         }
@@ -154,6 +146,6 @@ int test_SphericalHarmonics_integration(int argc, char *argv[])
   return 0;
 }
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of test_SphericalHarmonics.cc
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

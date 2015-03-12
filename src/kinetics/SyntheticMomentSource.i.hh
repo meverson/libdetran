@@ -52,7 +52,7 @@ inline void SyntheticMomentSource::build(const double dt,
   Require(states.size() >= order);
   // If the precursors are present, they must be the same size as the state
   size_t size_precursor = precursors.size();
-  Require((size_precursor == size_state) or (size_precursor == 0));
+  Require((size_precursor == size_state) || (size_precursor == 0));
 
   // Number of precursors
   size_t np = 0;
@@ -65,12 +65,12 @@ inline void SyntheticMomentSource::build(const double dt,
   double a_0 = bdf_coefs[order-1][0];
 
   // Clear the source
-  for (int g = 0; g < d_material->number_groups(); ++g)
-    for (int cell = 0; cell < d_mesh->number_cells(); ++cell)
+  for (size_t g = 0; g < d_material->number_groups(); ++g)
+    for (size_t cell = 0; cell < d_mesh->number_cells(); ++cell)
       d_source[g][cell] = 0.0;
 
   // Add all backward terms
-  for (int j = 0; j < order; ++j)
+  for (size_t j = 0; j < order; ++j)
   {
     Assert(states[j]);
     if (size_precursor)
@@ -81,27 +81,27 @@ inline void SyntheticMomentSource::build(const double dt,
     // Skip the first entry, which is for the (n+1) term
     double a_j = bdf_coefs[order-1][j + 1];
 
-    for (int g = 0; g < d_material->number_groups(); ++g)
+    for (size_t g = 0; g < d_material->number_groups(); ++g)
     {
 
       // Add the flux term
       double phi_factor = a_j / dt / d_material->velocity(g);
-      for (int cell = 0; cell < d_mesh->number_cells(); ++cell)
+      for (size_t cell = 0; cell < d_mesh->number_cells(); ++cell)
       {
 //        std::cout << " phi factor=" << phi_factor
 //                  << " phi = " << states[j]->phi(g)[cell]
 //                  << " source = " << d_source[g][cell] << std::endl;
-        d_source[g][cell] = phi_factor * states[j]->phi(g)[cell];
+        d_source[g][cell] += phi_factor * states[j]->phi(g)[cell];
       }
 
       // Add the precursor concentration, if applicable
       if (size_precursor)
       {
-        for (int i = 0; i < np; ++i)
+        for (size_t i = 0; i < np; ++i)
         {
           double C_factor = a_j * d_material->lambda(i) /
                             (a_0 + dt * d_material->lambda(i));
-          for (int cell = 0; cell < d_mesh->number_cells(); ++cell)
+          for (size_t cell = 0; cell < d_mesh->number_cells(); ++cell)
           {
 
             d_source[g][cell] += C_factor *
@@ -118,7 +118,7 @@ inline void SyntheticMomentSource::build(const double dt,
     } // end groups
   } // end backward terms
 //  std::cout << " source = " << this->source(0, 0) << "  " << this->source(1, 0) << std::endl;
-//  std::cout << " source = " << this->source(0, 0, 0) << "  " << this->source(1, 0, 0) << std::endl;
+//  std::cout << " source = " << this->source(0, 0, 0) << "  " << this->source(1, 0, 0) << " " << dt << std::endl;
 }
 
 } // end namespace detran

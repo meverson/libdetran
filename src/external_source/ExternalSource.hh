@@ -1,17 +1,17 @@
-//----------------------------------*-C++-*----------------------------------//
+//----------------------------------*-C++-*-----------------------------------//
 /**
- *  @file   ExternalSource.hh
- *  @author robertsj
- *  @date   Apr 4, 2012
- *  @brief  ExternalSource class definition.
+ *  @file  ExternalSource.hh
+ *  @brief ExternalSource class definition
+ *  @note  Copyright (C) Jeremy Roberts 2012-2013
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
 #ifndef detran_external_source_EXTERNALSOURCE_HH_
 #define detran_external_source_EXTERNALSOURCE_HH_
 
-#include "geometry/Mesh.hh"
+#include "external_source/external_source_export.hh"
 #include "angle/Quadrature.hh"
+#include "geometry/Mesh.hh"
 #include "utilities/DBC.hh"
 #include "utilities/Definitions.hh"
 #include "utilities/SP.hh"
@@ -20,7 +20,7 @@
 namespace detran_external_source
 {
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 /**
  *  @class ExternalSource
  *  @brief Base volume source class
@@ -38,16 +38,16 @@ namespace detran_external_source
  *
  *  @note Source representation in moment form is limited to isotropic
  */
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 
-class ExternalSource
+class EXTERNAL_SOURCE_EXPORT ExternalSource
 {
 
 public:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // TYPEDEFS
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   typedef detran_utilities::SP<ExternalSource>      SP_externalsource;
   typedef std::vector<SP_externalsource>            vec_externalsource;
@@ -55,9 +55,9 @@ public:
   typedef detran_angle::Quadrature::SP_quadrature   SP_quadrature;
   typedef detran_utilities::size_t                  size_t;
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // CONSTRUCTOR & DESTRUCTOR
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  @brief Constructor
@@ -69,35 +69,21 @@ public:
   ExternalSource(size_t         number_groups,
                  SP_mesh        mesh,
                  SP_quadrature  quadrature,
-                 bool           discrete = false)
-    : d_number_groups(number_groups)
-    , d_mesh(mesh)
-    , d_quadrature(quadrature)
-    , d_number_angles(-1)
-    , d_discrete(discrete)
-  {
-    // Preconditions
-    Require(number_groups > 0);
-    Require(mesh);
-
-    // Set the angle count.  We leave this in the constructor, since
-    // the quadrature need not be set.
-    if (d_quadrature) d_number_angles = d_quadrature->number_angles();
-  }
+                 bool           discrete = false);
 
   /// Virtual destructor
   virtual ~ExternalSource(){}
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // PUBLIC FUNCTIONS
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   size_t number_groups() const { return d_number_groups; }
   bool   is_discrete() const { return d_discrete; }
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // ABSTRACT INTERFACE -- ALL EXTERNAL SOURCES MUST IMPLEMENT THESE
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /**
    *  @brief Get moments source for cell.
@@ -125,9 +111,9 @@ public:
 
 protected:
 
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
   // DATA
-  //-------------------------------------------------------------------------//
+  //--------------------------------------------------------------------------//
 
   /// Cartesian mesh.
   SP_mesh d_mesh;
@@ -138,16 +124,19 @@ protected:
   /// Number of angles
   size_t d_number_angles;
   /// Am I ready?
-  int d_initialized;
+  //int d_initialized;
   /// Discrete flag
   bool d_discrete;
 
 };
 
+EXTERNAL_SOURCE_TEMPLATE_EXPORT(detran_utilities::SP<ExternalSource>)
+EXTERNAL_SOURCE_TEMPLATE_EXPORT(std::vector<detran_utilities::SP<ExternalSource> >)
+
 } // end namespace detran_external_source
 
 #endif /* detran_external_sourceEXTERNALSOURCE_HH_ */
 
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //              end of ExternalSource.hh
-//---------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//

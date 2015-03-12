@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   TimeStepper.cc
- *  @brief  TimeStepper
- *  @author Jeremy Roberts
- *  @date   Nov 16, 2012
+ *  @file  TimeStepper.cc
+ *  @brief TimeStepper class member definitions
+ *  @note  Copyright (C) 2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -28,9 +27,9 @@ TimeStepper<D>::TimeStepper(SP_input       input,
   : d_input(input)
   , d_material(material)
   , d_mesh(mesh)
-  , d_multiply(multiply)
   , d_discrete(false)
   , d_number_groups(0)
+  , d_multiply(multiply)
   , d_dt(1.0)
   , d_step_factor(1.0)
   , d_final_time(10.0)
@@ -42,8 +41,9 @@ TimeStepper<D>::TimeStepper(SP_input       input,
   , d_residual_norm(0.0)
   , d_monitor(NULL)
   , d_monitor_level(1)
-  , d_maximum_iterations(1)
   , d_tolerance(1e-4)
+  , d_maximum_iterations(1)
+  , d_update_multiphysics_rhs(NULL)
 {
   // Preconditions
   Require(d_input);
@@ -122,7 +122,7 @@ TimeStepper<D>::TimeStepper(SP_input       input,
   d_order = d_scheme;
   if (d_scheme == 0) d_order++;
 
-  if (d_input->check("ts_no_extrapolation") and d_scheme != IMP)
+  if (d_input->check("ts_no_extrapolation") && d_scheme != IMP)
     d_no_extrapolation = d_input->template get<int>("ts_no_extrapolation");
 
   // Get the convergence criteria
@@ -205,6 +205,8 @@ void TimeStepper<D>::solve(SP_state initial_state)
   initialize_precursors();
   *d_states[0] = *d_state;
   if (d_precursors.size()) *d_precursors[0] = *d_precursor;
+  if (d_multiphysics) *d_vec_multiphysics[0] = *d_multiphysics;
+
 
   // Output the initial state
   if (d_do_output) d_silooutput->write_time_flux(0, d_state, d_discrete);
@@ -212,7 +214,7 @@ void TimeStepper<D>::solve(SP_state initial_state)
   // Set the solver
   d_solver->set_solver();
 
-  // Call the monitor, if present.
+  // Call the monitor, if present.  [data, this, step, time, dt, order, conv]
   if (d_monitor_level) d_monitor(d_monitor_data, this, 0, 0.0, d_dt, 1, true);
 
   // Perform time steps
@@ -230,15 +232,15 @@ void TimeStepper<D>::solve(SP_state initial_state)
     // if doing the first step of a higher order BDF method.  The
     // user can explicitly turn extrapolation off.
     bool flag = false;
-    if (d_scheme == IMP or (order == 1 and d_order > 1)) flag = true;
-    if (d_no_extrapolation and !(d_scheme == IMP)) flag = false;
-
-    //std::cout << " FLAG = " << flag << std::endl;
+    //if (d_scheme == IMP) flag = true;
+    if (d_scheme == IMP || (order == 1 && d_order > 1)) flag = true;
+    if (d_no_extrapolation && !(d_scheme == IMP)) flag = false;
 
     // Set the temporary time step
     dt = d_dt;
     if (flag) dt = 0.5 * d_dt;
 
+    // Perform fixed-point iterations
     size_t iteration = 1;
     for (; iteration <= d_maximum_iterations; ++iteration)
     {
@@ -249,7 +251,8 @@ void TimeStepper<D>::solve(SP_state initial_state)
       if (iteration == d_maximum_iterations) converged = true;
 
       // Call the monitor, if present.
-      if (d_monitor_level) d_monitor(d_monitor_data, this, i, t, dt, iteration, converged);
+      if (d_monitor_level)
+        d_monitor(d_monitor_data, this, i, t, d_dt, iteration, converged);
 
       if (converged) break;
 
@@ -259,6 +262,7 @@ void TimeStepper<D>::solve(SP_state initial_state)
     cycle_states_precursors(order);
     *d_states[0] = *d_state;
     if (d_multiply) *d_precursors[0] = *d_precursor;
+    if (d_multiphysics) *d_vec_multiphysics[0] = *d_multiphysics;
 
     // Output the initial state
     if (d_do_output) d_silooutput->write_time_flux(i+1, d_state, true);
@@ -274,19 +278,34 @@ void TimeStepper<D>::step(const double t,
                           const size_t order,
                           const bool   flag)
 {
+  // Adjust the time for evaluating materials and sources if
+  // we're in a half step to be extrapolated.  The dt passed
+  // *is* the half step.
+  double t_eval = t;
+  if (flag) t_eval -= dt;
+
   // Update the material, sources, and solver
-  d_material->update(t, dt, order, true);
-  update_sources(t, dt, order);
+  d_material->update(t_eval, dt, order, true);
+  update_sources(t_eval, dt, order);
   d_solver->update();
 
   // Save old state
   *d_state_0 = *d_state;
   if (d_multiply) *d_precursor_0 = *d_precursor;
+  if (d_multiphysics) *d_multiphysics_0 = *d_multiphysics;
 
-  // Solve the MG problem for the new state and update the precursors
+  // Solve the MG problem for the new state
   d_solver->solve();
   d_state = d_solver->state();
-  update_precursors(t, dt, order);
+
+  // Update the precursors
+  update_precursors(t_eval, dt, order);
+
+  // Update the physics.  First, evaluate the right hand side
+  // contribution, i.e. dY/dt = rhs(t, Y).  Given this
+  // initial value, we multiply by delta_t and any BDF terms.
+  if (d_multiphysics) update_multiphysics(t_eval, dt, order);
+
   if (flag) extrapolate();
 }
 
@@ -298,7 +317,7 @@ void TimeStepper<D>::initialize_precursors()
   Require(d_state);
 
   // Skip if we have no multiplication or if we have no precursors
-  if (!d_multiply or !d_material->number_precursor_groups()) return;
+  if (!d_multiply || !d_material->number_precursor_groups()) return;
   Assert(d_precursors.size() > 0);
 
   /*
@@ -334,7 +353,7 @@ void TimeStepper<D>::update_precursors(const double t,
                                        const size_t order)
 {
   // Skip if we have no multiplication
-  if (!d_multiply or !d_material->number_precursor_groups()) return;
+  if (!d_multiply || !d_material->number_precursor_groups()) return;
 
   // Update the materials to eliminate the synthetic component.
   d_material->update(t, dt, order, false);
@@ -380,27 +399,78 @@ void TimeStepper<D>::update_precursors(const double t,
 
 //---------------------------------------------------------------------------//
 template <class D>
+void TimeStepper<D>::update_multiphysics(const double t,
+                                         const double dt,
+                                         const size_t order)
+{
+  // Update the right hand side.  The result is placed into
+  // the working vector d_multiphysics
+  std::cout << " P before = " << d_multiphysics->variable(0)[0] - 300.0 << std::endl;
+  d_update_multiphysics_rhs(d_multiphysics_data, this, t, dt);
+  std::cout << " P after = " << d_multiphysics->variable(0)[0] << std::endl;
+
+  // Loop through and compute
+  //  y(n+1) = (1/a0) * ( dt*rhs + sum of bdf terms )
+  for (size_t i = 0; i < d_multiphysics->number_variables(); ++i)
+  {
+
+    // Reference to P(n+1)
+    MultiPhysics::vec_dbl &P   = d_multiphysics->variable(i);
+
+    //std::cout << " Pold[0]=" << P[0] << std::endl;
+    printf("delP = %18.12e \n", P[0]);
+    printf("Pold[0] = %18.12e \n", d_vec_multiphysics[0]->variable(0)[0]);
+
+    // Loop over all elements (usually spatial)
+    for (int j = 0; j < P.size(); ++j)
+    {
+
+      double v = dt * P[j];
+      for (size_t k = 1; k <= order; ++k)
+        v += bdf_coefs[order-1][k] * d_vec_multiphysics[k-1]->variable(i)[j];
+      P[j] = v / bdf_coefs[order-1][0];
+    } // end element loop
+    std::cout << " Pnew[0]=" << P[0] - 300.0 << std::endl;
+  } // end variable loop
+}
+
+//---------------------------------------------------------------------------//
+template <class D>
 void TimeStepper<D>::cycle_states_precursors(const size_t order)
 {
   // Preconditions
   Require(d_states.size() == d_order);
   Require(order <= d_order);
 
-  SP_state      tmp_state;
-  SP_precursors tmp_precursors;
+  SP_state        tmp_state;
+  SP_precursors   tmp_precursors;
+  SP_multiphysics tmp_multiphysics;
 
   // Save the first element.
   tmp_state = d_states[d_order - 1];
-  if (d_precursors.size()) tmp_precursors = d_precursors[d_order - 1];
+  if (d_precursors.size())
+    tmp_precursors = d_precursors[d_order - 1];
+  if (d_vec_multiphysics.size())
+    tmp_multiphysics = d_vec_multiphysics[d_order - 1];
 
   for (size_t i = 0; i < d_order - 1; ++i)
   {
     size_t j = d_order - i - 1;
-    d_states[j] = d_states[j -1];
-    if (d_precursors.size()) d_precursors[j] = d_precursors[j-1];
+
+//    std::cout << " j=" << j << " order=" << order
+//              << " dorder=" << d_order << " phi=" << d_states[j]->phi(0)[0] << std::endl;
+
+
+    d_states[j] = d_states[j - 1];
+    if (d_precursors.size())
+      d_precursors[j] = d_precursors[j-1];
+    if (d_vec_multiphysics.size())
+      d_vec_multiphysics[j] = d_vec_multiphysics[j-1];
+
   }
   d_states[0] = tmp_state;
   if (d_precursors.size()) d_precursors[0] = tmp_precursors;
+  if (d_vec_multiphysics.size()) d_vec_multiphysics[0] = tmp_multiphysics;
 
 }
 
@@ -434,6 +504,7 @@ void TimeStepper<D>::update_sources(const double t,
 template <class D>
 void TimeStepper<D>::extrapolate()
 {
+  //THROW("bad!!!");
   // Extrapolate psi(n+1) = 2*psi(n+1/2) - psi(n)
   if (d_discrete)
   {
@@ -447,13 +518,14 @@ void TimeStepper<D>::extrapolate()
       {
         for (size_t a = 0; a < d_quadrature->number_angles_octant(); ++a)
         {
-          int angle = d_quadrature->index(o, a);
+          // Updated flux
           State::angular_flux_type &psi  = d_state->psi(g, o, a);
+          // Previous flux
           const State::angular_flux_type &psi0 = d_states[0]->psi(g, o, a);
           for (size_t i = 0; i < d_mesh->number_cells(); ++i)
           {
             psi[i] = 2.0 * psi[i] - psi0[i];
-            if (d_fixup and psi[i] < 0.0) psi[i] = 0.0;
+            if (d_fixup && psi[i] < 0.0) psi[i] = 0.0;
             d_state->phi(g)[i] += d_quadrature->weight(a) * psi[i];
           } // end cell
         } // end angle
@@ -471,18 +543,28 @@ void TimeStepper<D>::extrapolate()
     } // end group
   }
 
-  // We extrapolate the precursors.  It may be better to
-  // recompute the precursors directly from the extrapolated
-  // flux.
-  if (d_multiply and d_precursor->number_precursor_groups())
+  // Extrapolate the precursors.
+  if (d_multiply && d_precursor->number_precursor_groups())
   {
     for (size_t i = 0; i < d_precursor->number_precursor_groups(); ++i)
     {
       Precursors::vec_dbl &C = d_precursor->C(i);
       const Precursors::vec_dbl &C0 = d_precursors[0]->C(i);
-      for (size_t i = 0; i < d_mesh->number_cells(); ++i)
-        C[i] = 2.0 * C[i] - C0[i];
+      for (size_t j = 0; j < d_mesh->number_cells(); ++j)
+        C[j] = 2.0 * C[j] - C0[j];
     } // end group
+  }
+
+  // Extrapolate multiphysics variables.
+  if (d_multiphysics)
+  {
+    for (size_t i = 0; i < d_multiphysics->number_variables(); ++i)
+    {
+      MultiPhysics::vec_dbl &P = d_multiphysics->variable(i);
+      const Precursors::vec_dbl &P0 = d_vec_multiphysics[0]->variable(i);
+      for (size_t j = 0; j < P.size(); ++j)
+        P[j] = 2.0 * P[j] - P0[j];
+    } // end variable
   }
 
 }
@@ -491,7 +573,9 @@ void TimeStepper<D>::extrapolate()
 template <class D>
 bool TimeStepper<D>::check_convergence()
 {
-  // compare new phi to old phi
+  // Currently, this implementation only checks convergence
+  // based on successive flux iterates.
+
   double d_residual_norm = 0.0;
   for (size_t g = 0; g < d_material->number_groups(); ++g)
   {
@@ -509,6 +593,35 @@ bool TimeStepper<D>::check_convergence()
 
 //---------------------------------------------------------------------------//
 template <class D>
+void TimeStepper<D>::
+set_multiphysics(SP_multiphysics ic,
+                 multiphysics_pointer update_multiphysics_rhs,
+                 void* multiphysics_data)
+{
+  // Preconditions
+  Require(ic);
+  Require(update_multiphysics_rhs);
+
+  std::cout << " ic T=" << ic->variable(0)[0] << std::endl;
+
+  d_multiphysics            = ic;
+  d_update_multiphysics_rhs = update_multiphysics_rhs;
+  d_multiphysics_data       = multiphysics_data;
+
+  // Create previous physics states
+  d_vec_multiphysics.resize(d_order);
+  d_multiphysics_0 = new MultiPhysics(*ic);
+  for (int i = 0; i < d_order; ++i)
+  {
+    d_vec_multiphysics[i] = new MultiPhysics(*ic);
+  }
+  std::cout << d_vec_multiphysics[0]->variable(0)[0] << std::endl;
+  std::cout << " ic T=" << d_multiphysics->variable(0)[0] << std::endl;
+}
+
+
+//---------------------------------------------------------------------------//
+template <class D>
 void ts_default_monitor(void* data,
                         TimeStepper<D>* ts,
                         int step,
@@ -519,7 +632,7 @@ void ts_default_monitor(void* data,
 {
   Require(ts);
   if (!ts->monitor_level()) return;
-  if (step == 0 and it == 1)
+  if (step == 0 && it == 1)
   {
     printf(" step        t       dt   iter \n");
     printf("-------------------------------\n");
@@ -532,9 +645,9 @@ void ts_default_monitor(void* data,
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 
-template class TimeStepper<_1D>;
-template class TimeStepper<_2D>;
-template class TimeStepper<_3D>;
+SOLVERS_INSTANTIATE_EXPORT(TimeStepper<_1D>)
+SOLVERS_INSTANTIATE_EXPORT(TimeStepper<_2D>)
+SOLVERS_INSTANTIATE_EXPORT(TimeStepper<_3D>)
 
 } // end namespace detran
 

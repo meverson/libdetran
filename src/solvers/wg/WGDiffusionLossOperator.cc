@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   WGDiffusionLossOperator.cc
- *  @brief  WGDiffusionLossOperator
- *  @author Jeremy Roberts
- *  @date   Jul 25, 2012
+ *  @file  WGDiffusionLossOperator.cc
+ *  @brief WGDiffusionLossOperator member definitions
+ *  @note  Copyright(C) 2012-2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -65,7 +64,7 @@ WGDiffusionLossOperator::WGDiffusionLossOperator(SP_input    input,
   // Build the matrix.
   build();
 
-  print_matlab("WGDSA.out");
+  //print_matlab("WGDSA.out");
 
 }
 
@@ -90,7 +89,7 @@ void WGDiffusionLossOperator::build()
   // Error flag
   bool flag;
 
-  double tmp = 3.0;
+  double tmp = 1.0;
 
   // Loop over all matrix rows, which, because of the ordering,
   // is the same as the cell index.
@@ -127,10 +126,9 @@ void WGDiffusionLossOperator::build()
 
     // Index arrays to help determine if a cell surface is on the boundary.
     int bound[6] = {i, i, j, j, k, k};
-    int nxyz[3][2] = {0, d_mesh->number_cells_x()-1,
-                      0, d_mesh->number_cells_y()-1,
-                      0, d_mesh->number_cells_z()-1};
-
+    int nxyz[3][2] = {{0, d_mesh->number_cells_x()-1},
+                      {0, d_mesh->number_cells_y()-1},
+                      {0, d_mesh->number_cells_z()-1}};
 
     // For each spatial cell, there are 6 faces that connect the
     // cell to a neighbor or the global boundary.  Looping through

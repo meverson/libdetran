@@ -22,11 +22,7 @@
 #include "boundary/BoundarySN.hh"
 #include "kinetics/LinearExternalSource.hh"
 #include "kinetics/LinearMaterial.hh"
-//
-#include "angle/test/quadrature_fixture.hh"
-#include "geometry/test/mesh_fixture.hh"
-#include "material/test/material_fixture.hh"
-#include "external_source/test/external_source_fixture.hh"
+#include "external_source/IsotropicSource.hh"
 
 using namespace detran_test;
 using namespace detran;
@@ -70,13 +66,13 @@ int test_TimeStepper(int argc, char *argv[])
   InputDB::SP_input inp(new InputDB("time stepper test"));
   inp->put<int>("dimension",                1);
   inp->put<int>("number_groups",            1);
-  inp->put<std::string>("equation",         "dd");
+  inp->put<std::string>("equation",         "diffusion");
   inp->put<std::string>("bc_west",          "reflect");
   inp->put<std::string>("bc_east",          "reflect");
   inp->put<double>("ts_final_time",         1.0); // 0.95162581964040427
-  inp->put<double>("ts_step_size",          0.1);
-  inp->put<int>("ts_max_steps",             10);
-  inp->put<int>("ts_scheme",                TS_1D::BDF1);
+  inp->put<double>("ts_step_size",          0.01);
+  inp->put<int>("ts_max_steps",             1000);
+  inp->put<int>("ts_scheme",                TS_1D::IMP);
   inp->put<int>("ts_discrete",              0);
   inp->put<int>("ts_output",                0);
   inp->put<int>("ts_monitor_level",         1);
@@ -110,10 +106,10 @@ int test_TimeStepper(int argc, char *argv[])
   kinmat->set_sigma_t(0, 0,    1.0);
   kinmat->set_diff_coef(0, 0,  1.0/3.0);
   //kinmat->set_sigma_s(0, 0, 0, 0.5);
-  kinmat->set_sigma_f(0, 0,    0.5);
+  kinmat->set_sigma_f(0, 0,    0.0);
   kinmat->set_velocity(0,      1.0);
   kinmat->set_chi(0, 0,        1.0);
-  kinmat->set_beta(0, 0,       0.06);
+  kinmat->set_beta(0, 0,       0.00);
   kinmat->set_chi_d(0, 0, 0,   1.0);
   kinmat->set_lambda(0,        0.1);
   kinmat->finalize();
@@ -148,7 +144,7 @@ int test_TimeStepper(int argc, char *argv[])
   IsotropicSource::SP_externalsource
     q_e1(new IsotropicSource(1, mesh, spectra, source_map));
   // "off"
-  spectra[1][0] = 0.0;
+  spectra[1][0] = 1.0;
   IsotropicSource::SP_externalsource
     q_e2(new IsotropicSource(1, mesh, spectra, source_map));
   //
@@ -185,25 +181,13 @@ int test_TimeStepper(int argc, char *argv[])
   TS_1D stepper(inp, linmat, mesh, true);
   stepper.set_monitor(test_monitor);
 
-//  // Initial condition (constant psi = 1/2)
-//  for (int o = 0; o < stepper.quadrature()->number_octants(); ++o)
-//  {
-//    for (int a = 0; a < stepper.quadrature()->number_angles_octant(); ++a)
-//    {
-//      for (int i = 0; i < mesh->number_cells(); ++i)
-//      {
-//        ic->phi(0)[i] = 1.0;
-//        ic->psi(0, o, a)[i] = 0.5;
-//      }
-//    }
-//  }
   // Initial condition (constant psi = 1/2)
   for (int i = 0; i < mesh->number_cells(); ++i)
   {
     ic->phi(0)[i] = 1.0;
   }
 
-  //stepper.add_source(q_td);
+  stepper.add_source(q_td);
 
   stepper.solve(ic);
 
@@ -238,7 +222,7 @@ int test_BDF_Steps(int argc, char *argv[])
   inp->put<double>("ts_final_time",         1.0);
   inp->put<double>("ts_step_size",          0.1);
   inp->put<int>("ts_discrete",              1);
-  inp->put<int>("ts_output",                1);
+  inp->put<int>("ts_output",                0);
   inp->put<int>("ts_monitor_level",         0);
   inp->put<int>("store_angular_flux",       1);
   inp->put<int>("inner_print_level",        0);
@@ -305,6 +289,8 @@ int test_BDF_Steps(int argc, char *argv[])
     stepper.solve(ic);
 
     State::SP_state final = stepper.state();
+    std::cout << " phi = " << final->phi(0)[0]
+              << " ref = " << ref[scheme] << std::endl;
     TEST(soft_equiv(final->phi(0)[0], ref[scheme]));
 
   } // end scheme loop

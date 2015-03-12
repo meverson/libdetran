@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
 /**
- *  @file   Vector.hh
- *  @author robertsj
- *  @date   Sep 13, 2012
- *  @brief  Vector class definition.
+ *  @file  Vector.hh
+ *  @brief Vector class definition
+ *  @note  Copyright (C) 2013 Jeremy Roberts
  */
 //---------------------------------------------------------------------------//
 
@@ -22,7 +21,7 @@ namespace callow
  *  @class Vector
  *  @brief Dense vector object
  */
-class Vector
+class CALLOW_EXPORT Vector
 {
 
 public:
@@ -44,9 +43,11 @@ public:
   Vector();
   Vector(const int n, double v = 0);
   Vector(const Vector &x);
-  Vector(Vector &x);
-  /// *Temporarily* wrap a std::vector
-  Vector(std::vector<double> &x);
+  //Vector(Vector &x);
+  /// Temporarily wrap a std::vector
+  Vector(const std::vector<double> &x);
+  /// Temporarily wrap a dumb point
+  Vector(const int n, double* v);
   //Vector(SP_vector x);
 #ifdef CALLOW_ENABLE_PETSC
   Vector(Vec pv);
@@ -134,7 +135,7 @@ public:
   //-------------------------------------------------------------------------//
 
   /// Pretty print to stdout
-  void display() const;
+  void display(const std::string &name = "") const;
   /// Formatted write to ascii for matlab
   void print_matlab(std::string filename="vector.out") const;
 
@@ -154,8 +155,12 @@ protected:
 #endif
   // Is this a temporary wrapper around a pointer? i.e. no delete at dtor?
   bool d_temporary;
+  // Is this also temporary around an extant PETSC vector?
+  bool d_temporary_petsc;
 
 };
+
+CALLOW_TEMPLATE_EXPORT(detran_utilities::SP<Vector>);
 
 } // end namespace callow
 
